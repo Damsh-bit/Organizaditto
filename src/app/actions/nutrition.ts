@@ -6,6 +6,7 @@ import { z } from "zod";
 import { getDb } from "@/db";
 import {
   babies,
+  babyFoodLogs,
   dailyMetrics,
   foodLogs,
   foods,
@@ -174,6 +175,7 @@ export async function togglePlanItemDone(id: number): Promise<ActionResult> {
 
   if (item.done) {
     if (item.audience === "adult" && item.logId) await db.delete(foodLogs).where(eq(foodLogs.id, item.logId));
+    if (item.audience === "baby" && item.logId) await db.delete(babyFoodLogs).where(eq(babyFoodLogs.id, item.logId));
     await db.update(mealPlanItems).set({ done: false, logId: null }).where(eq(mealPlanItems.id, id));
     refresh();
     return ok("Desmarcado");

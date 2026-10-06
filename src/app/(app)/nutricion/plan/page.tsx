@@ -52,7 +52,7 @@ export default async function PlanPage({ searchParams }: Props) {
       <PlanToolbar
         weekStart={weekStart}
         prevWeekStart={addDaysISO(weekStart, -7)}
-        templates={templates.filter((t) => !t.slug?.startsWith("bebe-") && !t.items.some((i) => i.recipeSlug?.startsWith("bebe-")))}
+        templates={templates.filter((t) => !t.slug?.startsWith("bebe-") && !t.items.some((i) => i.recipeSlug?.startsWith("bebe-")) && !(t.isCustom && t.emoji === "👶"))}
         hasItems={items.length > 0}
       />
 
