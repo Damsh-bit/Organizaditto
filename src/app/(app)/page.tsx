@@ -125,12 +125,19 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
-          {greeting()}
-          {s.name ? `, ${s.name}` : ""} 👋
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">{fmtDateLong(today)}</p>
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
+            {greeting()}
+            {s.name ? `, ${s.name}` : ""} 👋
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">{fmtDateLong(today)}</p>
+        </div>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/semana">
+            Resumen semanal <ArrowRight className="size-3.5" />
+          </Link>
+        </Button>
       </div>
 
       {insights.length > 0 && (
