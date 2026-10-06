@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Baby, Briefcase, Dumbbell, Home, Salad, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { OfflineBanner } from "@/components/offline-banner";
 
 export const NAV = [
   { href: "/", label: "Inicio", icon: Home, color: "text-primary" },
@@ -91,6 +92,7 @@ export function AppShell({ children, banner }: { children: React.ReactNode; bann
           </div>
         </header>
 
+        <OfflineBanner />
         {banner}
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 pt-4 pb-28 md:px-8 md:pt-8 md:pb-12">{children}</main>
       </div>
