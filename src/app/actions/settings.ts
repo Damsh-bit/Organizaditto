@@ -8,6 +8,7 @@ import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { isISODate, todayISO } from "@/lib/dates";
 import { parseNum } from "@/lib/format";
 import { DEFAULT_MEAL_SPLIT } from "@/lib/constants";
+import { importAll } from "@/lib/server/backup";
 
 function str(fd: FormData, key: string): string | null {
   const v = fd.get(key);
@@ -207,4 +208,21 @@ export async function toggleHabit(habitId: number, date: string): Promise<Action
   if (!deleted.length) await db.insert(habitChecks).values({ habitId, date }).onConflictDoNothing();
   refresh();
   return ok();
+}
+
+/* ----------------------------- Backup ----------------------------- */
+
+export async function importBackup(fd: FormData): Promise<ActionResult> {
+  const file = fd.get("file");
+  if (!(file instanceof File) || file.size === 0) return fail("Elegí un archivo .json de backup");
+  if (file.size > 50 * 1024 * 1024) return fail("El archivo es demasiado grande");
+  try {
+    const payload = JSON.parse(await file.text());
+    const db = await getDb();
+    const total = await importAll(db, payload);
+    refresh();
+    return ok(`Backup restaurado (${total} registros)`);
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "No se pudo importar");
+  }
 }
