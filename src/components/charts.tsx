@@ -2,18 +2,32 @@
 
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ReferenceLine, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartTooltip, type ChartConfig } from "@/components/ui/chart";
-import { fmtDateShort } from "@/lib/dates";
+import { fmtDate, fmtDateShort, fmtMonth } from "@/lib/dates";
 import { fmtDec, fmtInt } from "@/lib/format";
 
 type Point = { date: string; value: number | null };
 
-function TooltipBox({ date, value, unit, digits, extra }: { date: string; value: number | null; unit: string; digits: number; extra?: string }) {
+function TooltipBox({
+  date,
+  value,
+  unit,
+  digits,
+  extra,
+  period = "day",
+}: {
+  date: string;
+  value: number | null;
+  unit: string;
+  digits: number;
+  extra?: string;
+  period?: "day" | "month";
+}) {
   return (
     <div className="rounded-lg border bg-popover px-2.5 py-1.5 text-xs shadow-md">
       <div className="text-sm font-semibold tabular">
         {value == null ? "—" : `${digits ? fmtDec(value, digits) : fmtInt(value)} ${unit}`}
       </div>
-      <div className="text-muted-foreground capitalize">{fmtDateShort(date)}</div>
+      <div className="text-muted-foreground capitalize">{period === "month" ? fmtMonth(date) : fmtDateShort(date)}</div>
       {extra && <div className="text-muted-foreground">{extra}</div>}
     </div>
   );
@@ -31,8 +45,10 @@ export function DailyBarChart({
   digits = 0,
   height = 220,
   label = "Valor",
+  period = "day",
 }: {
   data: Point[];
+  period?: "day" | "month";
   target?: number;
   targetLabel?: string;
   color?: string;
@@ -51,7 +67,7 @@ export function DailyBarChart({
           tickLine={false}
           axisLine={{ stroke: "var(--border)" }}
           tick={axisTick}
-          tickFormatter={(d: string) => d.slice(8, 10) + "/" + d.slice(5, 7)}
+          tickFormatter={(d: string) => (period === "month" ? fmtDate(d, "MMM yy") : d.slice(8, 10) + "/" + d.slice(5, 7))}
           minTickGap={12}
         />
         <YAxis tickLine={false} axisLine={false} tick={axisTick} width={44} tickFormatter={(v: number) => fmtInt(v)} />
@@ -64,6 +80,7 @@ export function DailyBarChart({
                 value={payload[0].payload.value}
                 unit={unit}
                 digits={digits}
+                period={period}
                 extra={target ? `${targetLabel}: ${fmtInt(target)} ${unit}` : undefined}
               />
             ) : null

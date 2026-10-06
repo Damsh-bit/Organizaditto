@@ -38,16 +38,18 @@ export function NewShoppingListForm({
   const [to, setTo] = useState(today);
   const [weeks, setWeeks] = useState("4");
   const [includeBaby, setIncludeBaby] = useState(true);
+  const [onlyNonPerishable, setOnlyNonPerishable] = useState(false);
   const [pending, start] = useTransition();
 
   function submit() {
     start(async () => {
+      const onp = (mode === "mes" || mode === "proyeccion") && onlyNonPerishable;
       let input: Parameters<typeof createShoppingList>[0];
-      if (mode === "semana-actual") input = { mode: "semana", from: thisWeek, includeBaby };
-      else if (mode === "semana-proxima") input = { mode: "semana", from: nextWeek, includeBaby };
-      else if (mode === "mes") input = { mode: "mes", from: today, includeBaby };
-      else if (mode === "proyeccion") input = { mode: "proyeccion", from: thisWeek, weeks: parseNum(weeks) ?? 4, includeBaby };
-      else input = { mode: "rango", from, to, includeBaby };
+      if (mode === "semana-actual") input = { mode: "semana", from: thisWeek, includeBaby, onlyNonPerishable: onp };
+      else if (mode === "semana-proxima") input = { mode: "semana", from: nextWeek, includeBaby, onlyNonPerishable: onp };
+      else if (mode === "mes") input = { mode: "mes", from: today, includeBaby, onlyNonPerishable: onp };
+      else if (mode === "proyeccion") input = { mode: "proyeccion", from: thisWeek, weeks: parseNum(weeks) ?? 4, includeBaby, onlyNonPerishable: onp };
+      else input = { mode: "rango", from, to, includeBaby, onlyNonPerishable: onp };
       const res = await createShoppingList(input);
       if (!res.ok) return void toast.error(res.error);
       toast.success(res.message);
@@ -80,6 +82,15 @@ export function NewShoppingListForm({
             <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
           </Field>
         </>
+      )}
+      {(mode === "mes" || mode === "proyeccion") && (
+        <label className="flex items-start gap-2 text-sm sm:col-span-2">
+          <Checkbox checked={onlyNonPerishable} onCheckedChange={(c) => setOnlyNonPerishable(Boolean(c))} className="mt-0.5" />
+          <span>
+            Solo no perecederos (súper y dietética)
+            <span className="block text-xs text-muted-foreground">Ideal para la compra grande del mes: lo fresco de verdulería y carnicería compralo cada semana.</span>
+          </span>
+        </label>
       )}
       <label className="flex items-center gap-2 text-sm sm:col-span-2">
         <Checkbox checked={includeBaby} onCheckedChange={(c) => setIncludeBaby(Boolean(c))} /> Incluir las comidas planificadas del bebé

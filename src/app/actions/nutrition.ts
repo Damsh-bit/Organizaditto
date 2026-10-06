@@ -519,6 +519,8 @@ const shoppingSchema = z.object({
   weeks: z.number().min(1).max(6).optional(),
   name: z.string().trim().max(80).optional(),
   includeBaby: z.boolean().default(true),
+  /** Solo súper/dietética: lo fresco (verdulería, carnicería…) se compra semanal. */
+  onlyNonPerishable: z.boolean().default(false),
 });
 
 export async function createShoppingList(input: z.input<typeof shoppingSchema>): Promise<ActionResult<{ id: number }>> {
@@ -569,13 +571,15 @@ export async function createShoppingList(input: z.input<typeof shoppingSchema>):
     }
   }
 
+  if (v.onlyNonPerishable) name = `${name} · no perecederos`;
   const [list] = await db
     .insert(shoppingLists)
     .values({ name: name!, kind, startDate: from, endDate: to, notes: multiplier > 1 ? `Cantidades × ${multiplier} semanas` : null })
     .returning({ id: shoppingLists.id });
 
+  const FRESH = ["verduleria", "carniceria", "pescaderia", "panaderia"];
   const rows = [...need.values()]
-    .filter((n) => n.grams > 0.5)
+    .filter((n) => n.grams > 0.5 && (!v.onlyNonPerishable || !FRESH.includes(n.food.store)))
     .map(({ food, grams }) => {
       const q = buyQuantity(food, grams);
       return {

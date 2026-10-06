@@ -82,3 +82,18 @@ export async function getProjects() {
     .limit(12);
   return rows.map((r) => r.project!);
 }
+
+/** Ganancias (USD) y horas por mes, para los últimos `months` meses. */
+export async function getMonthlyEarnings(fromISO: string) {
+  const db = await getDb();
+  return db
+    .select({
+      month: sql<string>`to_char(${workLogs.date}::date, 'YYYY-MM-01')`,
+      hours: sql<number>`sum(${workLogs.hours})`.mapWith(Number),
+      usd: sql<number>`sum(${workLogs.hours} * ${workLogs.rateUsd})`.mapWith(Number),
+    })
+    .from(workLogs)
+    .where(and(gte(workLogs.date, fromISO), eq(workLogs.running, false)))
+    .groupBy(sql`1`)
+    .orderBy(sql`1`);
+}

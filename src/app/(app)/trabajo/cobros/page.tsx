@@ -1,21 +1,27 @@
 import type { Metadata } from "next";
 import { Trash2 } from "lucide-react";
 import { ActionButton } from "@/components/action-button";
+import { DailyBarChart } from "@/components/charts";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState, Stat } from "@/components/stats";
 import { PayoutDialog } from "@/components/work/work-client";
 import { deletePayout } from "@/app/actions/work";
-import { fmtDateShort, todayISO } from "@/lib/dates";
+import { addMonthsISO, fmtDateShort, startOfMonthISO, todayISO } from "@/lib/dates";
 import { fmtARS, fmtUSD } from "@/lib/format";
 import { getSettings } from "@/lib/data/settings";
 import { getEffectiveRate } from "@/lib/data/rates";
-import { getBalance, getPayouts } from "@/lib/data/work";
+import { getBalance, getMonthlyEarnings, getPayouts } from "@/lib/data/work";
 
 export const metadata: Metadata = { title: "Cobros" };
 
 export default async function CobrosPage() {
   const s = await getSettings();
-  const [{ rate }, balance, list] = await Promise.all([getEffectiveRate(s), getBalance(), getPayouts()]);
+  const firstMonth = addMonthsISO(startOfMonthISO(todayISO()), -5);
+  const [{ rate }, balance, list, monthly] = await Promise.all([getEffectiveRate(s), getBalance(), getPayouts(), getMonthlyEarnings(firstMonth)]);
+  const byMonth = new Map(monthly.map((m) => [m.month, m]));
+  const months = Array.from({ length: 6 }, (_, i) => addMonthsISO(firstMonth, i));
+  const series = months.map((m) => ({ date: m, value: byMonth.get(m)?.usd ?? 0 }));
   return (
     <div className="space-y-5">
       <PageHeader
@@ -29,6 +35,15 @@ export default async function CobrosPage() {
         <Stat label="Cobrado" value={fmtUSD(balance.paidUsd)} />
         <Stat label="Recibido en pesos" value={fmtARS(balance.paidArs)} hint={balance.paidUsd ? `promedio ${fmtARS(balance.paidArs / balance.paidUsd, 2)}/USD` : undefined} />
       </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Ganancias por mes (USD)</CardTitle>
+          <CardDescription>Últimos 6 meses, según las horas registradas.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DailyBarChart data={series} unit="USD" digits={2} period="month" color="var(--work)" label="Ganancias" height={200} />
+        </CardContent>
+      </Card>
       {list.length === 0 ? (
         <EmptyState emoji="💸" title="Todavía no registraste cobros" />
       ) : (

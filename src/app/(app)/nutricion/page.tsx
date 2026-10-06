@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CalendarDays, Check, Copy, Plus, Trash2 } from "lucide-react";
+import { CalendarDays, Check, Copy, Plus, Sparkles, Trash2 } from "lucide-react";
 import { ActionButton } from "@/components/action-button";
 import { AddFoodDialog } from "@/components/nutrition/add-food-dialog";
 import { CalorieSummary } from "@/components/nutrition/calorie-summary";
@@ -10,9 +10,10 @@ import { PageHeader } from "@/components/page-header";
 import { DateNav } from "@/components/stats";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { copyMealFromDate, deleteFoodLog, togglePlanItemDone } from "@/app/actions/nutrition";
-import { MEALS } from "@/lib/constants";
-import { addDaysISO, fmtDateLong, isISODate, relativeDayLabel, todayISO } from "@/lib/dates";
+import { addFoodLog, copyMealFromDate, deleteFoodLog, togglePlanItemDone } from "@/app/actions/nutrition";
+import { MEAL_LABEL, MEALS } from "@/lib/constants";
+import { addDaysISO, fmtDateLong, isISODate, relativeDayLabel, todayISO, TZ } from "@/lib/dates";
+import { nextMealByHour, suggestRecipes } from "@/lib/suggest";
 import { fmtDec, fmtGrams, fmtInt } from "@/lib/format";
 import { getProfileContext } from "@/lib/data/settings";
 import { getDaySummary, getFoodOptions, getFrequentLogItems, getPlanItems, getRecipeOptions } from "@/lib/data/nutrition";
@@ -37,6 +38,18 @@ export default async function DiarioPage({ searchParams }: Props) {
   ]);
   const pendingPlan = plan.filter((p) => !p.done);
   const yesterday = addDaysISO(date, -1);
+  const hour = Number(new Intl.DateTimeFormat("es-AR", { timeZone: TZ, hour: "numeric", hour12: false }).format(new Date()));
+  const nextMeal = nextMealByHour(hour);
+  const suggestions =
+    date === today
+      ? suggestRecipes({
+          recipes,
+          meal: nextMeal,
+          remainingKcal: summary.remaining,
+          slotTarget: ctx.targets.target * (ctx.settings.mealSplit?.[nextMeal] ?? 0.25),
+          proteinLeft: ctx.targets.protein - summary.totals.protein,
+        })
+      : [];
 
   return (
     <div className="space-y-5">
@@ -62,6 +75,48 @@ export default async function DiarioPage({ searchParams }: Props) {
               <WaterTracker date={date} ml={summary.waterMl} goal={ctx.settings.waterGoalMl} />
             </CardContent>
           </Card>
+
+          {suggestions.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="size-4 text-amber-500" /> ¿Qué como ahora?
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Ideas para {summary.remaining < 250 ? "una colación" : `${nextMeal === "cena" || nextMeal === "merienda" ? "la" : "el"} ${MEAL_LABEL[nextMeal].toLowerCase()}`} que entran en tus {fmtInt(summary.remaining)} kcal
+                  restantes{ctx.targets.protein - summary.totals.protein > 25 ? ` y suman proteína (te faltan ${fmtInt(ctx.targets.protein - summary.totals.protein)} g)` : ""}.
+                </p>
+                {suggestions.map((s) => (
+                  <div key={s.recipe.id} className="flex items-center gap-3 rounded-lg border p-2">
+                    <span className="text-xl">{s.recipe.emoji}</span>
+                    <div className="min-w-0 flex-1">
+                      <Link href={`/nutricion/recetas/${s.recipe.id}`} className="line-clamp-2 text-sm leading-tight font-medium hover:underline">
+                        {s.recipe.name}
+                      </Link>
+                      <div className="text-xs text-muted-foreground">
+                        {fmtDec(s.servings, 2)} porc. · {fmtInt(s.kcal)} kcal · P {fmtInt(s.protein)} g
+                      </div>
+                    </div>
+                    <ActionButton
+                      size="sm"
+                      variant="outline"
+                      action={addFoodLog.bind(null, {
+                        kind: "recipe",
+                        date,
+                        meal: summary.remaining < 250 ? "snack" : nextMeal,
+                        recipeId: s.recipe.id,
+                        servings: s.servings,
+                      })}
+                    >
+                      <Plus className="size-3.5" /> Lo comí
+                    </ActionButton>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
 
           {pendingPlan.length > 0 && (
             <Card>
