@@ -85,17 +85,17 @@ Por seguridad, sin contraseña la app **solo escucha en tu PC**. Para usarla des
 La PC tiene que estar prendida con la app abierta. La primera vez Windows puede preguntar si Node.js puede usar
 la red: elegí "Redes privadas".
 
-## Publicarla en internet (Vercel + Neon)
+## Publicada en Vercel
 
-Ya tenés la integración de **Neon** instalada en tu cuenta de Vercel, así que son unos clics:
+La app está en **<https://organizaditto.vercel.app>**, conectada a este repo: cada push a `main` se publica solo.
 
-1. En Vercel: **Add New → Project** e importá este repositorio.
-2. En el proyecto: **Storage → Create Database → Neon** y conectala al proyecto
-   (esto crea la variable `DATABASE_URL` automáticamente).
-3. En **Settings → Environment Variables** agregá `APP_PASSWORD` con una contraseña (para que nadie más entre).
-4. Deploy. La app crea las tablas y carga recetas/alimentos sola en el primer acceso.
-5. Para llevar tus datos locales: en tu compu **Ajustes → Descargar backup**, y en la app publicada
-   **Ajustes → Restaurar backup**.
+- **Acceso:** el proyecto tiene *Vercel Authentication* en todas las URLs, así que solo entra quien esté logueado
+  con tu cuenta de Vercel (en el celular, iniciás sesión una vez). No hace falta `APP_PASSWORD`.
+- **Base de datos:** hasta conectar Neon usa una base temporal (se borra sola; la app lo avisa con un cartel).
+  Para que los datos queden guardados: en el proyecto de Vercel, **Storage → Create Database → Neon**, conectala
+  al proyecto (crea `DATABASE_URL`) y volvé a desplegar. La app crea las tablas y carga recetas/alimentos sola.
+- **Llevar tus datos de la PC:** en tu compu **Ajustes → Descargar backup**, y en la app publicada
+  **Ajustes → Restaurar backup**.
 
 Al abrirla en el celular podés **instalarla como app** (Compartir → "Agregar a pantalla de inicio").
 
