@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -11,11 +12,14 @@ type Props = Omit<React.ComponentProps<typeof Button>, "onClick" | "action"> & {
   confirm?: string;
   success?: string;
   onDone?: () => void;
+  /** Navegar a esta ruta después de una ejecución exitosa. */
+  redirectTo?: string;
 };
 
 /** Botón que ejecuta una server action (ya con sus argumentos bindeados). */
-export function ActionButton({ action, confirm, success, onDone, children, disabled, ...props }: Props) {
+export function ActionButton({ action, confirm, success, onDone, redirectTo, children, disabled, ...props }: Props) {
   const [pending, start] = useTransition();
+  const router = useRouter();
   return (
     <Button
       {...props}
@@ -29,6 +33,7 @@ export function ActionButton({ action, confirm, success, onDone, children, disab
             const msg = (res && res.ok && res.message) || success;
             if (msg) toast.success(msg);
             onDone?.();
+            if (redirectTo) router.push(redirectTo);
           } catch (err) {
             toast.error(err instanceof Error ? err.message : "Error");
           }
