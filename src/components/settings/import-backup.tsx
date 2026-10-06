@@ -14,7 +14,7 @@ export function ImportBackup() {
       <input
         ref={ref}
         type="file"
-        accept="application/json,.json"
+        accept="application/json,.json,.gz"
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];

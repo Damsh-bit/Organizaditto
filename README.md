@@ -16,7 +16,9 @@ semanal recalcula tus objetivos y tus horas de trabajo se convierten a pesos con
 - **Lista de compras** semanal, mensual o proyectada (semana × N), separada por **verdulería, carnicería,
   pescadería, súper y dietética**, redondeada a lo que se vende (kg, paquetes, docenas…), con despensa aparte,
   precios y compartir por WhatsApp.
-- **Progreso**: promedio diario, adherencia, déficit acumulado vs. cambio real de peso.
+- **Progreso**: promedio diario, adherencia, déficit acumulado vs. cambio real de peso y **gasto real**:
+  con 10+ días registrados y 3 pesajes calcula cuánto gastás de verdad (comidas − tendencia de la balanza)
+  y te sugiere ajustar el objetivo con un clic.
 - **Alimentos**: base de ~160 alimentos editable (macros, unidades, local de compra, precio) y búsqueda de
   productos envasados en Open Food Facts por nombre o código de barras (con escáner en el celular).
 
@@ -59,6 +61,10 @@ compila y abre la app en el navegador.
 Los datos se guardan en una base Postgres **local** (PGlite) en `~/.organizaditto/pgdata` (fuera de OneDrive
 para evitar conflictos de sincronización). No hace falta instalar ninguna base de datos.
 
+**Backup automático:** la primera vez que abrís la app cada día se guarda una copia comprimida en
+`OneDrive/Organizaditto/backups` (se sube sola a tu OneDrive). Quedan los últimos 14 días y uno por mes, y se
+restauran desde **Ajustes → Datos y backup**.
+
 > Para usarla desde el celular en la misma red Wi-Fi: `npm run build` y luego `npm start -- -H 0.0.0.0`,
 > y entrá a `http://IP-DE-TU-PC:3000`.
 
@@ -86,6 +92,8 @@ Ver [`.env.example`](.env.example). Todas son opcionales:
 | `APP_PASSWORD` | Activa el login con contraseña (recomendado al publicar). |
 | `AUTH_SECRET` | Secreto extra para firmar la sesión (opcional). |
 | `PGLITE_DIR` | Carpeta de la base local (por defecto `~/.organizaditto/pgdata`). |
+| `BACKUP_DIR` | Carpeta del backup automático (por defecto `OneDrive/Organizaditto/backups`). |
+| `AUTO_BACKUP` | `0` desactiva el backup automático. |
 
 ## Scripts
 

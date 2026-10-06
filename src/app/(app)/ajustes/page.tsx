@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Database, Download, LogOut, Trash2 } from "lucide-react";
+import { CloudUpload, Database, Download, History, LogOut, Trash2, TriangleAlert } from "lucide-react";
 import { ActionButton } from "@/components/action-button";
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { Field, NativeSelect } from "@/components/form-fields";
@@ -12,6 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   addHabit,
   archiveHabit,
+  backupNow,
+  restoreAutoBackup,
   saveBaby,
   saveNutritionSettings,
   saveProfile,
@@ -27,7 +29,8 @@ import { ACTIVITY_LEVELS } from "@/lib/nutrition";
 import { getBaby, getProfileContext } from "@/lib/data/settings";
 import { getEffectiveRate } from "@/lib/data/rates";
 import { getHabitsWeek } from "@/lib/data/habits";
-import { todayISO } from "@/lib/dates";
+import { fmtDateShort, relativeDayLabel, todayISO } from "@/lib/dates";
+import { listAutoBackups } from "@/lib/server/auto-backup";
 
 export const metadata: Metadata = { title: "Ajustes" };
 
@@ -44,7 +47,7 @@ function Section({ id, title, description, children }: { id: string; title: stri
 }
 
 export default async function AjustesPage() {
-  const [ctx, baby, habits] = await Promise.all([getProfileContext(), getBaby(), getHabitsWeek(todayISO())]);
+  const [ctx, baby, habits, autoBackups] = await Promise.all([getProfileContext(), getBaby(), getHabitsWeek(todayISO()), listAutoBackups()]);
   const s = ctx.settings;
   const t = ctx.targets;
   const { rate } = await getEffectiveRate(s);
@@ -249,7 +252,7 @@ export default async function AjustesPage() {
       <Section id="datos" title="Datos y backup">
         <div className="space-y-4 text-sm">
           <div className="flex items-start gap-3 rounded-xl bg-muted/50 p-3">
-            <Database className="mt-0.5 size-4 text-muted-foreground" />
+            <Database className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
             <div>
               {info.driver === "neon" ? (
                 <>Base de datos: <b>Neon (Postgres en la nube)</b>. Tus datos están disponibles desde cualquier dispositivo.</>
@@ -266,6 +269,54 @@ export default async function AjustesPage() {
               )}
             </div>
           </div>
+          {autoBackups.dir && (
+            <div className="space-y-2 rounded-xl border p-3">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="flex items-start gap-3">
+                  <CloudUpload className="mt-0.5 size-4 shrink-0 text-primary" />
+                  <div>
+                    <div className="font-medium">Backup automático diario</div>
+                    <div className="text-xs text-muted-foreground">
+                      Se guarda solo la primera vez que abrís la app cada día en <code className="break-all">{autoBackups.dir}</code>
+                      {autoBackups.dir.toLowerCase().includes("onedrive") && " (se sube a tu OneDrive)"}. Quedan los últimos 14 días y uno por mes.
+                    </div>
+                  </div>
+                </div>
+                <ActionButton size="sm" variant="outline" action={backupNow}>
+                  Hacer backup ahora
+                </ActionButton>
+              </div>
+              {autoBackups.error && (
+                <p className="flex gap-2 rounded-lg bg-warning/10 p-2 text-xs">
+                  <TriangleAlert className="size-3.5 shrink-0 text-warning" /> El último intento falló: {autoBackups.error}
+                </p>
+              )}
+              {autoBackups.files.length > 0 ? (
+                <ul className="divide-y rounded-lg border text-xs">
+                  {autoBackups.files.slice(0, 6).map((f) => (
+                    <li key={f.name} className="flex items-center gap-2 px-2.5 py-1.5">
+                      <History className="size-3.5 text-muted-foreground" />
+                      <span className="flex-1 first-letter:uppercase">{relativeDayLabel(f.date)}</span>
+                      <span className="tabular text-muted-foreground">{Math.max(1, Math.round(f.bytes / 1024))} KB</span>
+                      <ActionButton
+                        size="xs"
+                        variant="ghost"
+                        action={restoreAutoBackup.bind(null, f.name)}
+                        confirm={`Esto REEMPLAZA tus datos actuales por los del ${fmtDateShort(f.date)}. Antes se guarda una copia de lo actual. ¿Continuar?`}
+                      >
+                        Restaurar
+                      </ActionButton>
+                    </li>
+                  ))}
+                  {autoBackups.files.length > 6 && (
+                    <li className="px-2.5 py-1.5 text-muted-foreground">y {autoBackups.files.length - 6} más en la carpeta</li>
+                  )}
+                </ul>
+              ) : (
+                <p className="text-xs text-muted-foreground">Todavía no hay backups automáticos.</p>
+              )}
+            </div>
+          )}
           <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline">
               <a href="/api/export">

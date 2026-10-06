@@ -9,6 +9,7 @@ import { isISODate, todayISO } from "@/lib/dates";
 import { parseNum } from "@/lib/format";
 import { DEFAULT_MEAL_SPLIT } from "@/lib/constants";
 import { importAll } from "@/lib/server/backup";
+import { parseBackup, readAutoBackup, writeAutoBackup } from "@/lib/server/auto-backup";
 
 function str(fd: FormData, key: string): string | null {
   const v = fd.get(key);
@@ -226,15 +227,39 @@ export async function toggleHabit(habitId: number, date: string): Promise<Action
 
 export async function importBackup(fd: FormData): Promise<ActionResult> {
   const file = fd.get("file");
-  if (!(file instanceof File) || file.size === 0) return fail("Elegí un archivo .json de backup");
+  if (!(file instanceof File) || file.size === 0) return fail("Elegí un archivo de backup (.json o .json.gz)");
   if (file.size > 50 * 1024 * 1024) return fail("El archivo es demasiado grande");
   try {
-    const payload = JSON.parse(await file.text());
+    const payload = parseBackup(Buffer.from(await file.arrayBuffer()));
     const db = await getDb();
     const total = await importAll(db, payload);
     refresh();
     return ok(`Backup restaurado (${total} registros)`);
   } catch (e) {
     return fail(e instanceof Error ? e.message : "No se pudo importar");
+  }
+}
+
+export async function backupNow(): Promise<ActionResult> {
+  try {
+    const f = await writeAutoBackup();
+    refresh();
+    return ok(`Backup guardado (${Math.max(1, Math.round(f.bytes / 1024))} KB)`);
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "No se pudo hacer el backup");
+  }
+}
+
+export async function restoreAutoBackup(name: string): Promise<ActionResult> {
+  try {
+    const payload = await readAutoBackup(name);
+    // Por las dudas, antes de pisar todo se guarda el estado actual como backup de hoy.
+    await writeAutoBackup();
+    const db = await getDb();
+    const total = await importAll(db, payload);
+    refresh();
+    return ok(`Backup restaurado (${total} registros)`);
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "No se pudo restaurar");
   }
 }

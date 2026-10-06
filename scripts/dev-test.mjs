@@ -7,6 +7,7 @@ const dir = process.env.PGLITE_DIR ?? path.join(os.tmpdir(), "organizaditto-test
 const child = spawn("npx", ["next", "dev", "-p", "3100"], {
   stdio: "inherit",
   shell: true,
-  env: { ...process.env, PGLITE_DIR: dir },
+  // Los backups automáticos de prueba van a una carpeta temporal, nunca a la de los datos reales.
+  env: { ...process.env, PGLITE_DIR: dir, BACKUP_DIR: process.env.BACKUP_DIR ?? path.join(os.tmpdir(), "organizaditto-test-backups") },
 });
 child.on("exit", (code) => process.exit(code ?? 0));
