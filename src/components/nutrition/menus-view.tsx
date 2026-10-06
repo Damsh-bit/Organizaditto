@@ -41,7 +41,7 @@ export async function MenusView({ audience }: { audience: "adult" | "baby" }) {
             : "Menús completos para el déficit, con guía de preparación. Al aplicarlos, las porciones se ajustan a tu objetivo calórico."
         }
       />
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {resolved.map((t) => (
           <Card key={t.id}>
             <CardHeader>

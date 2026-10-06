@@ -40,7 +40,7 @@ export default async function CotizacionPage() {
         description="La app usa la cotización elegida en Ajustes para pasar tus dólares a pesos. Se actualiza sola cada 15 minutos."
         actions={<RateBadge rate={rate} />}
       />
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Cotizaciones ahora</CardTitle>

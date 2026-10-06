@@ -56,7 +56,7 @@ export default async function GuiaPage() {
             </AccordionTrigger>
             <AccordionContent className="space-y-3 text-sm">
               <p>{s.summary}</p>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div className="rounded-lg bg-muted/50 p-3">
                   <div className="text-xs font-medium text-muted-foreground">Frecuencia</div>
                   {s.meals}
@@ -91,7 +91,7 @@ export default async function GuiaPage() {
         ))}
       </Accordion>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

@@ -144,7 +144,7 @@ export default async function BebePage() {
               </CardTitle>
               <CardDescription>{stage.summary}</CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-3 text-sm sm:grid-cols-3">
+            <CardContent className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
               <div>
                 <div className="text-xs font-medium text-muted-foreground">Frecuencia</div>
                 {stage.meals}
@@ -175,7 +175,7 @@ export default async function BebePage() {
       </div>
 
       {baby.birthDate && (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Link href="/bebe/crecimiento" className="flex items-center gap-3 rounded-xl border bg-card p-3 transition-colors hover:bg-muted/50">
             <Ruler className="size-5 shrink-0 text-baby" />
             <div className="min-w-0 flex-1 text-sm">
@@ -211,7 +211,7 @@ export default async function BebePage() {
         </div>
       )}
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Hoy</CardTitle>

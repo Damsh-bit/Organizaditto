@@ -90,7 +90,7 @@ export function RecipeBrowser({
       )}
 
       <div className="text-xs text-muted-foreground">{filtered.length} recetas</div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((r) => (
           <Link
             key={r.id}

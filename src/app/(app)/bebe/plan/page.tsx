@@ -48,7 +48,7 @@ export default async function BabyPlanPage({ searchParams }: { searchParams: Pro
           }
         />
       )}
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         {dates.map((d) => {
           const dayItems = items.filter((i) => i.date === d);
           return (

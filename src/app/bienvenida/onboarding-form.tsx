@@ -54,7 +54,7 @@ export function OnboardingForm({ defaults }: { defaults: Defaults }) {
           <CardTitle>Tus datos</CardTitle>
           <CardDescription>Para calcular tu gasto calórico (fórmula de Mifflin-St Jeor).</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
+        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Nombre" htmlFor="name">
             <Input id="name" name="name" value={v.name} onChange={set("name")} placeholder="¿Cómo te llamo?" />
           </Field>
@@ -123,7 +123,7 @@ export function OnboardingForm({ defaults }: { defaults: Defaults }) {
           <CardTitle>Tu bebé</CardTitle>
           <CardDescription>Para adaptar recetas y texturas a su edad. Podés dejarlo para después.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-3">
+        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label="Nombre" htmlFor="babyName">
             <Input id="babyName" name="babyName" value={v.babyName} onChange={set("babyName")} />
           </Field>

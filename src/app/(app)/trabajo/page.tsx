@@ -77,7 +77,7 @@ export default async function TrabajoPage({ searchParams }: { searchParams: Prom
         </CardContent>
       </Card>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Card size="sm">
           <CardContent className="space-y-2">
             <div className="text-xs text-muted-foreground">Hoy</div>
@@ -131,7 +131,7 @@ export default async function TrabajoPage({ searchParams }: { searchParams: Prom
         <Stat label="Valor de 1 hora" value={fmtARS(s.hourlyRateUsd * r)} hint={`${fmtUSD(s.hourlyRateUsd)} × ${fmtARS(r, 2)}`} />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Habit tracker de trabajo</CardTitle>

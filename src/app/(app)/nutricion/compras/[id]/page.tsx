@@ -74,7 +74,7 @@ export default async function ShoppingListPage({ params }: { params: Promise<{ i
 
       <AddManualItem listId={list.id} />
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {stores.map((s) => (
           <Card key={s.key} className="gap-0 py-0">
             <div className="flex items-center justify-between border-b px-3 py-2.5">

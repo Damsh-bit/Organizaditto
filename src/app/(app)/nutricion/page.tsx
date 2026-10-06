@@ -74,7 +74,7 @@ export default async function DiarioPage({ searchParams }: Props) {
         todayHref={date !== today ? "/nutricion" : null}
       />
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_1.2fr]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_1.2fr]">
         <div className="space-y-5">
           <Card>
             <CardContent>

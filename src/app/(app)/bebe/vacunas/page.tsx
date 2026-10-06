@@ -67,7 +67,7 @@ export default async function VacunasPage() {
         actions={<ExtraVaccineDialog today={today} />}
       />
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="rounded-xl border bg-card p-3">
           <div className="text-xs text-muted-foreground">Dosis del calendario aplicadas</div>
           <div className="tabular mt-0.5 text-lg font-semibold">
@@ -117,7 +117,7 @@ export default async function VacunasPage() {
         </p>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {[...groups.entries()].map(([age, list]) => {
           const allDone = list.every((r) => r.status === "aplicada");
           return (

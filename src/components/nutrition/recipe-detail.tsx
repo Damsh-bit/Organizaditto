@@ -87,7 +87,7 @@ export function RecipeDetail({ recipe, basePath }: { recipe: RecipeFull; basePat
         </div>
       )}
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_1.3fr]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_1.3fr]">
         <Card>
           <CardHeader>
             <CardTitle>Ingredientes</CardTitle>

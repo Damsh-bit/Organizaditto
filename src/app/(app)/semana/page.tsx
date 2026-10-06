@@ -108,7 +108,7 @@ export default async function SemanaPage({ searchParams }: { searchParams: Promi
         </CardHeader>
         <CardContent className="space-y-3">
           <ProgressBar value={score} max={achievements.length} barClassName="bg-primary" overClassName="bg-primary" height="h-2.5" />
-          <ul className="grid gap-1.5 sm:grid-cols-2">
+          <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
             {achievements.map((a) => (
               <li key={a.text} className={cn("flex items-center gap-2 text-sm", !a.ok && "text-muted-foreground")}>
                 {a.ok ? <CheckCircle2 className="size-4 shrink-0 text-success" /> : <Circle className="size-4 shrink-0" />}
@@ -119,7 +119,7 @@ export default async function SemanaPage({ searchParams }: { searchParams: Promi
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Block icon={<Salad className="size-4 text-nutri" />} title="Nutrición" href="/nutricion/progreso">
           <Row label="Promedio diario" value={logged.length ? `${fmtInt(avgKcal)} kcal` : "—"} hint={`objetivo ${fmtInt(target)}`} />
           <Row label="Días registrados" value={`${logged.length} de 7`} />

@@ -85,7 +85,7 @@ export function RoutineEditor({
   return (
     <div className="space-y-5">
       <Card>
-        <CardContent className="grid gap-4 sm:grid-cols-4">
+        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <Field label="Nombre" className="sm:col-span-2">
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej: Empuje (pecho/hombro/tríceps)" />
           </Field>

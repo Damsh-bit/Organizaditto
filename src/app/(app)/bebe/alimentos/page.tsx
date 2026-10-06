@@ -23,7 +23,7 @@ export default async function BabyFoodsPage() {
     <div className="space-y-6">
       <PageHeader title="Alimentos y alérgenos" description={`Qué probó ${baby.name}, cuántas veces, si le gustó y si tuvo alguna reacción.`} />
 
-      <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr]">
         <Card>
           <CardHeader>
             <CardTitle>Alérgenos</CardTitle>
@@ -132,7 +132,7 @@ export default async function BabyFoodsPage() {
         <p className="mb-3 text-sm text-muted-foreground">
           Alimentos aptos para su edad que todavía no registraste. Algunos pueden necesitar varios intentos (8 a 15) hasta que los acepte.
         </p>
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
           {[...toTryByCat.entries()].map(([cat, list]) => (
             <Card key={cat} size="sm">
               <CardHeader>

@@ -58,7 +58,7 @@ export function NewShoppingListForm({
   }
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <Field label="¿Para qué período?" className="sm:col-span-2">
         <NativeSelect value={mode} onChange={(e) => setMode(e.target.value)}>
           <option value="semana-actual">Esta semana (según el plan)</option>

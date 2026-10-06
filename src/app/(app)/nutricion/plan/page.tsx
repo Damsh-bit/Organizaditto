@@ -64,7 +64,7 @@ export default async function PlanPage({ searchParams }: Props) {
         />
       )}
 
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         {dates.map((d) => {
           const dayItems = items.filter((i) => i.date === d);
           const kcal = dayItems.reduce((a, i) => a + i.recipe.kcal * i.servings, 0);
@@ -139,7 +139,7 @@ export default async function PlanPage({ searchParams }: Props) {
           <p className="mb-3 text-sm text-muted-foreground">
             Qué cocinar y cuánto, agrupado por receta. Las recetas que rinden varias porciones se cocinan una vez y alcanzan para varios días.
           </p>
-          <div className="grid gap-2 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
             {prep.map((t) => (
               <Link
                 key={t.recipeId}

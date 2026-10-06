@@ -105,7 +105,7 @@ export function RecipeEditor({ initial, foods, basePath }: { initial: RecipeEdit
         <CardHeader>
           <CardTitle>Datos generales</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-6">
+        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-6">
           <Field label="Emoji" className="sm:col-span-1">
             <Input value={v.emoji} onChange={(e) => set("emoji", e.target.value)} maxLength={8} className="text-center text-xl" />
           </Field>
