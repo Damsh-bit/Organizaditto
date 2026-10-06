@@ -108,6 +108,25 @@ export const MENUS: MenuSeed[] = [
   },
 ];
 
+MENUS.push({
+  slug: "semana-clasicos-light",
+  name: "Clásicos argentinos light",
+  emoji: "🥟",
+  description: "Empanadas, revuelto gramajo, guiso y tartas… en versión déficit. Para cuando extrañás la comida de siempre.",
+  items: week({
+    desayuno: ["tostada-mani-banana", "avena-cocida-banana", "tostadas-ricota-tomate", "avena-cocida-banana", "tostadas-palta-huevo", "pancakes-avena-banana", "omelette-espinaca-queso"],
+    almuerzo: ["guiso-arroz-carne", "guiso-arroz-carne", "pollo-limon-papas", "pollo-limon-papas", "tarta-atun-cebolla", "empanadas-pollo-horno", "bife-nalga-papas-ensalada"],
+    merienda: ["chocolatada-light", "yogur-griego-frutas", "chocolatada-light", "manzana-pasta-mani", "bowl-yogur-frutas-avena", "chocolatada-light", "budin-avena-manzana"],
+    cena: ["merluza-papillote", "milanesas-berenjena-horno", "tarta-atun-cebolla", "revuelto-gramajo-light", "ensalada-tibia-lentejas", "sopa-crema-calabaza", "empanadas-pollo-horno"],
+  }),
+  prepGuide: [
+    "Domingo: guiso de arroz (rinde 5) para almuerzo de lunes y martes; freezá el resto.",
+    "Martes a la noche: pollo al limón (rinde 4) para miércoles y jueves.",
+    "Miércoles: tarta de atún (rinde 4) para la cena del miércoles y el almuerzo del viernes.",
+    "Viernes: armá las empanadas (rinden 4 porciones de 3): sábado almuerzo y domingo cena; freezá las que sobren crudas.",
+  ],
+});
+
 export const BABY_MENUS: MenuSeed[] = [
   {
     slug: "bebe-primera-semana",

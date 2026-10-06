@@ -173,6 +173,7 @@ export const FOODS: FoodSeed[] = [
   f("pan-integral", "Pan integral (lactal)", "panificados", S, [250, 12, 41, 3.5, 7], { unit: ["rebanada", 25], buy: ["paquete", 500], allergen: "gluten" }),
   f("pan-frances", "Pan francés", "panificados", PAN, [270, 9, 55, 1.5, 2.5], { unit: ["unidad", 60], allergen: "gluten" }),
   f("medialuna", "Medialuna", "panificados", PAN, [410, 7, 46, 22, 1.5], { unit: ["unidad", 45], buy: ["docena", 540], allergen: "gluten" }),
+  f("tapa-empanada", "Tapas de empanada para horno", "panificados", S, [300, 7, 48, 8, 2], { unit: ["tapa", 33], buy: ["paquete x12", 396], allergen: "gluten" }),
   f("cereal-infantil", "Cereal infantil fortificado", "infantil", S, [390, 7, 82, 2, 4], { unit: ["cucharada", 5], buy: ["caja", 200], baby: 6 }),
 
   // ---------------- Legumbres y conservas ----------------

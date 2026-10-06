@@ -16,11 +16,12 @@ import { DEFAULT_MEAL_SPLIT } from "@/lib/constants";
 import { FOODS } from "./foods";
 import { ADULT_RECIPES, type RecipeSeed } from "./recipes";
 import { BABY_RECIPES } from "./baby-recipes";
+import { EXTRA_RECIPES } from "./recipes-extra";
 import { DEFAULT_HABITS, EXERCISES, ROUTINES } from "./training";
 import { BABY_MENUS, MENUS } from "./menus";
 
 /** Subir este número cuando se agreguen datos nuevos al seed. */
-export const SEED_VERSION = 1;
+export const SEED_VERSION = 2;
 
 export async function ensureSeed(db: DB) {
   let [row] = await db.select().from(settings).where(eq(settings.id, 1));
@@ -42,7 +43,7 @@ export async function ensureSeed(db: DB) {
   const existingRecipes = new Set(
     (await db.select({ slug: recipes.slug }).from(recipes)).map((r) => r.slug),
   );
-  const newRecipes = [...ADULT_RECIPES, ...BABY_RECIPES].filter((r) => !existingRecipes.has(r.slug));
+  const newRecipes = [...ADULT_RECIPES, ...EXTRA_RECIPES, ...BABY_RECIPES].filter((r) => !existingRecipes.has(r.slug));
   if (newRecipes.length) {
     const rows = newRecipes.map((r) => recipeRow(r, foodBySlug));
     const inserted = await db.insert(recipes).values(rows).returning({ id: recipes.id, slug: recipes.slug });
