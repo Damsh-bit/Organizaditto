@@ -15,6 +15,7 @@ import { fmtDec, fmtInt, parseNum } from "@/lib/format";
 import { estimateWorkoutKcal, INTENSITIES, WORKOUT_TYPES } from "@/lib/training";
 import { cn } from "@/lib/utils";
 import { ExercisePicker, type ExerciseOpt } from "./exercise-picker";
+import { RestTimer } from "./rest-timer";
 
 type SetRow = { reps: string; weightKg: string; durationMin: string; distanceKm: string };
 type Block = { key: number; exercise: ExerciseOpt; sets: SetRow[]; hint?: string };
@@ -257,6 +258,9 @@ export function WorkoutForm({
           <CardTitle>Ejercicios</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="sticky top-14 z-10 -mx-1 rounded-xl bg-card/95 px-1 py-1 backdrop-blur md:top-2">
+            <RestTimer />
+          </div>
           {blocks.map((b) => {
             const cardio = b.exercise.kind === "cardio";
             return (

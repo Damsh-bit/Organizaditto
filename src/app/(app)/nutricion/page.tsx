@@ -5,6 +5,7 @@ import { CalendarDays, Check, Copy, Plus, Sparkles, Trash2 } from "lucide-react"
 import { ActionButton } from "@/components/action-button";
 import { AddFoodDialog } from "@/components/nutrition/add-food-dialog";
 import { CalorieSummary } from "@/components/nutrition/calorie-summary";
+import { EditLogAmount } from "@/components/nutrition/edit-log-amount";
 import { WaterTracker } from "@/components/nutrition/water-tracker";
 import { PageHeader } from "@/components/page-header";
 import { DateNav } from "@/components/stats";
@@ -12,11 +13,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { addFoodLog, copyMealFromDate, deleteFoodLog, togglePlanItemDone } from "@/app/actions/nutrition";
 import { MEAL_LABEL, MEALS } from "@/lib/constants";
-import { addDaysISO, fmtDateLong, isISODate, relativeDayLabel, todayISO, TZ } from "@/lib/dates";
+import { addDaysISO, fmtDateLong, isISODate, relativeDayLabel, startOfWeekISO, todayISO, TZ, weekdayMon } from "@/lib/dates";
 import { nextMealByHour, suggestRecipes } from "@/lib/suggest";
 import { fmtDec, fmtGrams, fmtInt } from "@/lib/format";
 import { getProfileContext } from "@/lib/data/settings";
-import { getDaySummary, getFoodOptions, getFrequentLogItems, getPlanItems, getRecipeOptions } from "@/lib/data/nutrition";
+import { getDaySummary, getExerciseKcal, getFoodOptions, getFrequentLogItems, getIntakeByDay, getPlanItems, getRecipeOptions } from "@/lib/data/nutrition";
 
 export const metadata: Metadata = { title: "Diario de comidas" };
 
@@ -29,13 +30,23 @@ export default async function DiarioPage({ searchParams }: Props) {
   const ctx = await getProfileContext();
   if (!ctx.settings.onboarded) redirect("/bienvenida");
 
-  const [summary, foods, recipes, frequent, plan] = await Promise.all([
+  const weekStart = startOfWeekISO(date);
+  const [summary, foods, recipes, frequent, plan, weekIntake, weekExercise] = await Promise.all([
     getDaySummary(date, ctx),
     getFoodOptions(),
     getRecipeOptions("adult"),
     getFrequentLogItems(10),
     getPlanItems(date, date, "adult"),
+    date > weekStart ? getIntakeByDay(weekStart, addDaysISO(date, -1)) : Promise.resolve([]),
+    date > weekStart ? getExerciseKcal(weekStart, addDaysISO(date, -1)) : Promise.resolve(new Map<string, number>()),
   ]);
+  // Balance semanal: compara lo comido los días ya registrados de la semana con lo previsto para esos días.
+  const eatBack = ctx.settings.exerciseEatBackPct / 100;
+  const pastExpected = weekIntake.reduce((a, r) => a + ctx.targets.target + (weekExercise.get(r.date) ?? 0) * eatBack, 0);
+  const pastEaten = weekIntake.reduce((a, r) => a + r.kcal, 0);
+  const weekBalance = pastExpected - pastEaten; // > 0: vas por debajo (bien para el déficit)
+  const daysLeft = 7 - weekdayMon(date);
+  const adjustedDaily = Math.round(ctx.targets.target + weekBalance / daysLeft);
   const pendingPlan = plan.filter((p) => !p.done);
   const yesterday = addDaysISO(date, -1);
   const hour = Number(new Intl.DateTimeFormat("es-AR", { timeZone: TZ, hour: "numeric", hour12: false }).format(new Date()));
@@ -70,6 +81,23 @@ export default async function DiarioPage({ searchParams }: Props) {
               <CalorieSummary summary={summary} targets={ctx.targets} compact />
             </CardContent>
           </Card>
+          {weekIntake.length > 0 && Math.abs(weekBalance) >= 100 && (
+            <Card size="sm">
+              <CardContent className="text-sm">
+                {weekBalance > 0 ? (
+                  <>
+                    📉 En la semana vas <b>{fmtInt(weekBalance)} kcal por debajo</b> de lo previsto ({weekIntake.length}{" "}
+                    {weekIntake.length === 1 ? "día registrado" : "días registrados"}). ¡Buen ritmo de déficit!
+                  </>
+                ) : (
+                  <>
+                    📈 En la semana vas <b>{fmtInt(-weekBalance)} kcal por encima</b> de lo previsto. Para compensar sin pasar hambre, apuntá a
+                    unas <b>{fmtInt(Math.max(ctx.targets.minSafe, adjustedDaily))} kcal por día</b> lo que queda de la semana.
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          )}
           <Card>
             <CardContent>
               <WaterTracker date={date} ml={summary.waterMl} goal={ctx.settings.waterGoalMl} />
@@ -175,13 +203,19 @@ export default async function DiarioPage({ searchParams }: Props) {
                   <CardContent className="divide-y">
                     {logs.map((l) => (
                       <div key={l.id} className="flex items-center gap-2 py-2 first:pt-0 last:pb-0">
-                        <div className="min-w-0 flex-1">
+                        <EditLogAmount
+                          id={l.id}
+                          name={l.name}
+                          kind={l.grams && l.foodId ? "grams" : l.servings ? "servings" : "kcal"}
+                          amount={l.grams && l.foodId ? l.grams : (l.servings ?? l.kcal)}
+                          kcal={l.kcal}
+                        >
                           <div className="truncate text-sm">{l.name}</div>
                           <div className="text-xs text-muted-foreground tabular">
                             {l.grams ? fmtGrams(l.grams) : l.servings ? `${fmtDec(l.servings, 2)} porc.` : "registro rápido"} · P {fmtDec(l.protein)} · C{" "}
                             {fmtDec(l.carbs)} · G {fmtDec(l.fat)}
                           </div>
-                        </div>
+                        </EditLogAmount>
                         <div className="text-sm font-medium tabular">{fmtInt(l.kcal)}</div>
                         <ActionButton
                           variant="ghost"

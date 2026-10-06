@@ -752,3 +752,38 @@ function toOption(f: Food): FoodOptionLite {
     babyFromMonths: f.babyFromMonths,
   };
 }
+
+/** Cambia la cantidad de un registro del diario y recalcula sus macros. */
+export async function updateFoodLogAmount(id: number, amount: number): Promise<ActionResult> {
+  if (!(amount > 0 && amount <= 5000)) return fail("Cantidad inválida");
+  const db = await getDb();
+  const [log] = await db.select().from(foodLogs).where(eq(foodLogs.id, id));
+  if (!log) return fail("Registro no encontrado");
+  if (log.foodId && log.grams) {
+    const [food] = await db.select().from(foods).where(eq(foods.id, log.foodId));
+    if (!food) return fail("El alimento ya no existe");
+    const m = roundMacros(macrosFor(food, amount));
+    await db.update(foodLogs).set({ grams: amount, kcal: m.kcal, protein: m.protein, carbs: m.carbs, fat: m.fat }).where(eq(foodLogs.id, id));
+  } else if (log.servings) {
+    const factor = amount / log.servings;
+    await db
+      .update(foodLogs)
+      .set({
+        servings: amount,
+        kcal: Math.round(log.kcal * factor),
+        protein: Math.round(log.protein * factor * 10) / 10,
+        carbs: Math.round(log.carbs * factor * 10) / 10,
+        fat: Math.round(log.fat * factor * 10) / 10,
+      })
+      .where(eq(foodLogs.id, id));
+  } else {
+    // registro rápido: la cantidad son las calorías
+    const factor = log.kcal > 0 ? amount / log.kcal : 1;
+    await db
+      .update(foodLogs)
+      .set({ kcal: Math.round(amount), protein: log.protein * factor, carbs: log.carbs * factor, fat: log.fat * factor })
+      .where(eq(foodLogs.id, id));
+  }
+  refresh();
+  return ok("Actualizado");
+}
