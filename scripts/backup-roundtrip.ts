@@ -1,8 +1,14 @@
 // Prueba de backup: exporta, reimporta y verifica que los conteos coincidan y las secuencias sigan funcionando.
+import os from "node:os";
+import path from "node:path";
 import { count } from "drizzle-orm";
 import { getDb } from "../src/db/client";
 import { weightLogs, foods } from "../src/db/schema";
 import { BACKUP_TABLES, exportAll, importAll } from "../src/lib/server/backup";
+
+// Nunca tocar la base real: siempre una base PGlite temporal.
+delete process.env.DATABASE_URL;
+process.env.PGLITE_DIR = path.join(os.tmpdir(), "organizaditto-backup-test");
 
 async function main() {
   const db = await getDb();

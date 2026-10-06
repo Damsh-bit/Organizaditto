@@ -6,6 +6,10 @@ import { exchangeRates, type Settings } from "@/db/schema";
 export type Quote = { source: string; buy: number | null; sell: number | null; fetchedAt: Date };
 
 const MAX_AGE_MS = 15 * 60 * 1000;
+const RETRY_AFTER_FAIL_MS = 5 * 60 * 1000;
+
+// Si las APIs fallan (sin internet), no reintentar en cada request durante unos minutos.
+const g = globalThis as unknown as { __orgRatesFailedAt?: number };
 const FALLBACK_RATE = 1600;
 
 async function fetchJson<T>(url: string): Promise<T | null> {
@@ -54,8 +58,11 @@ export async function getQuotes(force = false): Promise<{ quotes: Record<string,
   let stored = await latestStored();
   const newest = stored.reduce<Date | null>((a, q) => (!a || q.fetchedAt > a ? q.fetchedAt : a), null);
   let live = false;
-  if (force || !newest || Date.now() - newest.getTime() > MAX_AGE_MS) {
+  const coolingDown = !force && g.__orgRatesFailedAt != null && Date.now() - g.__orgRatesFailedAt < RETRY_AFTER_FAIL_MS;
+  if (!coolingDown && (force || !newest || Date.now() - newest.getTime() > MAX_AGE_MS)) {
     const fresh = await fetchLiveQuotes();
+    if (!fresh.length) g.__orgRatesFailedAt = Date.now();
+    else g.__orgRatesFailedAt = undefined;
     if (fresh.length) {
       const db = await getDb();
       const now = new Date();
