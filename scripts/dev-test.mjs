@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 
 const dir = process.env.PGLITE_DIR ?? path.join(os.tmpdir(), "organizaditto-test-pgdata");
-const child = spawn("npx", ["next", "dev", "-p", "3100", "-H", "127.0.0.1"], {
+const child = spawn("npx next dev -p 3100 -H 127.0.0.1", {
   stdio: "inherit",
   shell: true,
   // Los backups automáticos de prueba van a una carpeta temporal, nunca a la de los datos reales.

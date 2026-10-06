@@ -31,7 +31,8 @@ if (host === "0.0.0.0") {
   console.log("\n  Solo en esta PC. Para usarla desde el celular, poné una contraseña en Ajustes y reiniciá la app.\n");
 }
 
-const child = spawn("npx", ["next", mode, "-H", host, ...rest], {
+// Un solo string con shell (necesario para `npx` en Windows); los argumentos son nuestros, no de terceros.
+const child = spawn(["npx", "next", mode, "-H", host, ...rest].join(" "), {
   stdio: "inherit",
   shell: true,
   env: { ...process.env, ORG_HOST: host },
