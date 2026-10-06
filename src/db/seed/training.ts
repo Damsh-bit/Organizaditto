@@ -161,21 +161,6 @@ export const ROUTINES: RoutineSeed[] = [
   },
 ];
 
-/** Factores MET por tipo de entrenamiento e intensidad (baja/media/alta). */
-export const WORKOUT_TYPES: Record<string, { label: string; emoji: string; met: [number, number, number] }> = {
-  fuerza: { label: "Fuerza / pesas", emoji: "🏋️", met: [3.5, 5, 6] },
-  cardio: { label: "Cardio en máquina", emoji: "🫀", met: [5, 7, 9] },
-  caminata: { label: "Caminata", emoji: "🚶", met: [3, 3.8, 5] },
-  correr: { label: "Correr", emoji: "🏃", met: [7, 9.8, 11.5] },
-  bici: { label: "Bicicleta", emoji: "🚴", met: [5.5, 7.5, 10] },
-  hiit: { label: "HIIT", emoji: "⚡", met: [6, 8, 10] },
-  funcional: { label: "Funcional / crossfit", emoji: "🤸", met: [4, 6, 8] },
-  natacion: { label: "Natación", emoji: "🏊", met: [6, 8, 10] },
-  deporte: { label: "Deporte (fútbol, pádel…)", emoji: "⚽", met: [5, 7, 9] },
-  movilidad: { label: "Yoga / movilidad", emoji: "🧘", met: [2.5, 3, 4] },
-  otro: { label: "Otro", emoji: "✨", met: [3.5, 5, 7] },
-};
-
 export const DEFAULT_HABITS = [
   { name: "Dormir 7 horas o más", emoji: "😴", targetPerWeek: 7 },
   { name: "8.000 pasos", emoji: "🚶", targetPerWeek: 5 },

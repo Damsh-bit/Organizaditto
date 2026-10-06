@@ -2,6 +2,7 @@ import "server-only";
 import { and, asc, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { exercises, routineExercises, routines, weightLogs, workoutSets, workouts } from "@/db/schema";
+import { addDaysISO, startOfWeekISO } from "@/lib/dates";
 
 export async function getWeightLogs(from?: string, to?: string) {
   const db = await getDb();
@@ -120,4 +121,56 @@ export async function getExerciseHistory(exerciseId: number) {
     .where(eq(workoutSets.exerciseId, exerciseId))
     .groupBy(workouts.date)
     .orderBy(asc(workouts.date));
+}
+
+/** Resumen semanal + racha de semanas cumpliendo el objetivo de días de entrenamiento. */
+export async function getTrainingSummary(today: string, goalDays: number) {
+  const weekStart = startOfWeekISO(today);
+  const from = addDaysISO(weekStart, -7 * 52);
+  const days = await getWorkoutDays(from, addDaysISO(weekStart, 6));
+
+  const weekDays = (start: string) => {
+    let n = 0;
+    for (let i = 0; i < 7; i++) if (days.has(addDaysISO(start, i))) n++;
+    return n;
+  };
+  const thisWeekDays = weekDays(weekStart);
+  let streak = thisWeekDays >= goalDays ? 1 : 0;
+  for (let w = 1; w <= 52; w++) {
+    if (weekDays(addDaysISO(weekStart, -7 * w)) >= goalDays) streak++;
+    else break;
+  }
+  // Racha de días consecutivos con entreno (hasta hoy o ayer)
+  let dayStreak = 0;
+  let cursor = days.has(today) ? today : addDaysISO(today, -1);
+  while (days.has(cursor)) {
+    dayStreak++;
+    cursor = addDaysISO(cursor, -1);
+  }
+  let kcal = 0;
+  let minutes = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = days.get(addDaysISO(weekStart, i));
+    if (d) {
+      kcal += d.kcal;
+      minutes += d.minutes;
+    }
+  }
+  return { weekStart, thisWeekDays, streakWeeks: streak, dayStreak, kcal, minutes, days };
+}
+
+/** Todo lo que necesita el formulario de entreno. */
+export async function getWorkoutFormContext() {
+  const [exs, rts, last] = await Promise.all([listExercises(), listRoutines(), getLastSetsByExercise()]);
+  return {
+    exercises: exs.map((e) => ({ id: e.id, name: e.name, muscleGroup: e.muscleGroup, kind: e.kind, equipment: e.equipment })),
+    routines: rts.map((r) => ({
+      id: r.id,
+      name: r.name,
+      workoutType: r.workoutType,
+      estMinutes: r.estMinutes,
+      exercises: r.exercises.map((e) => ({ exerciseId: e.exerciseId, sets: e.sets, reps: e.reps })),
+    })),
+    lastSets: Object.fromEntries(last.entries()),
+  };
 }
