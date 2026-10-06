@@ -124,6 +124,18 @@ export async function saveNutritionSettings(fd: FormData): Promise<ActionResult>
   return ok("Objetivos de nutrición guardados");
 }
 
+/** Fija el objetivo calórico (null = volver al cálculo por fórmula). */
+export async function setTargetKcal(kcal: number | null): Promise<ActionResult> {
+  if (kcal != null && (!Number.isFinite(kcal) || kcal < 1000 || kcal > 6000)) return fail("Objetivo fuera de rango");
+  const db = await getDb();
+  await db
+    .update(settings)
+    .set({ targetKcalOverride: kcal == null ? null : Math.round(kcal), updatedAt: new Date() })
+    .where(eq(settings.id, 1));
+  refresh();
+  return ok(kcal == null ? "Volviste al objetivo por fórmula" : `Nuevo objetivo: ${Math.round(kcal)} kcal`);
+}
+
 export async function saveTrainingSettings(fd: FormData): Promise<ActionResult> {
   const db = await getDb();
   await db

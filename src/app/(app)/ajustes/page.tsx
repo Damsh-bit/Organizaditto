@@ -103,7 +103,7 @@ export default async function AjustesPage() {
           <Field label="Déficit diario (kcal)" hint={`≈ ${(((s.deficitKcal || 0) * 7) / 7700).toFixed(2).replace(".", ",")} kg por semana`}>
             <Input name="deficitKcal" inputMode="numeric" defaultValue={s.deficitKcal} />
           </Field>
-          <Field label="Calorías objetivo manual (opcional)" hint="Si lo completás, reemplaza el cálculo automático">
+          <Field label="Calorías objetivo manual (opcional)" hint="Reemplaza el cálculo por fórmula. En Nutrición → Progreso te sugiero uno según tu gasto real">
             <Input name="targetKcalOverride" inputMode="numeric" defaultValue={s.targetKcalOverride ?? ""} placeholder={String(t.target)} />
           </Field>
           <Field label="Agua por día (ml)">

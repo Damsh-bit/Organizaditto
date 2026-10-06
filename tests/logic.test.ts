@@ -9,6 +9,7 @@ import { estimateWorkoutKcal } from "../src/lib/training";
 import { weeklyRate, weightInsights } from "../src/lib/weight";
 import { suggestRecipes } from "../src/lib/suggest";
 import { matches } from "../src/lib/search";
+import { computeAdaptive } from "../src/lib/adaptive";
 
 /** RNG determinista (mulberry32) para que los tests sean reproducibles. */
 function rng(seed: number) {
@@ -183,5 +184,60 @@ describe("fechas, formato y búsqueda", () => {
     assert.equal(s[0].recipe.id, 1);
     assert.ok(s.every((x) => x.kcal <= 640));
     assert.equal(suggestRecipes({ recipes: r, meal: "cena", remainingKcal: 120, slotTarget: 600, proteinLeft: 10 })[0]?.recipe.id, 3);
+  });
+});
+
+describe("gasto real (adaptativo)", () => {
+  const today = "2026-10-30";
+  const base = { today, bmr: 1850, formulaTdee: 2540, target: 2040, deficitKcal: 500, eatBackPct: 50, minSafe: 1500 };
+  const days = (from: string, n: number, kcal: number) =>
+    Array.from({ length: n }, (_, i) => ({ date: addDaysISO(from, i), kcal, entries: 4 }));
+  const weekly = [
+    { date: "2026-10-09", weightKg: 89.5 },
+    { date: "2026-10-16", weightKg: 89 },
+    { date: "2026-10-23", weightKg: 88.5 },
+    { date: "2026-10-30", weightKg: 88 },
+  ];
+
+  it("calcula el gasto con comidas y tendencia de la balanza", () => {
+    const r = computeAdaptive({ ...base, intake: days("2026-10-01", 29, 2000), weights: weekly, exercise: new Map() });
+    assert.ok(r.ready);
+    if (!r.ready) return;
+    // 2000 kcal/día bajando 0,5 kg/semana → 2000 + 0,5 × 7700 / 7 = 2550
+    assert.equal(r.tdee, 2550);
+    assert.equal(r.avgIntake, 2000);
+    assert.equal(r.suggestedTarget, 2050);
+    assert.equal(r.progress.completeDays, 21);
+    assert.equal(r.confidence, "media");
+    assert.ok(r.plausible);
+  });
+
+  it("descuenta lo que se come de vuelta por el gimnasio", () => {
+    const exercise = new Map(["2026-10-10", "2026-10-12", "2026-10-14"].map((d) => [d, 420]));
+    const r = computeAdaptive({ ...base, intake: days("2026-10-01", 29, 2000), weights: weekly, exercise });
+    assert.ok(r.ready);
+    if (!r.ready) return;
+    // 1260 kcal en 21 días = 60/día; se come de vuelta el 50 %
+    assert.equal(r.avgExercise, 60);
+    assert.equal(r.suggestedTarget, Math.round((2550 - 500 - 30) / 10) * 10);
+  });
+
+  it("no calcula sin suficientes pesajes o días registrados", () => {
+    const fewWeights = computeAdaptive({ ...base, intake: days("2026-10-01", 29, 2000), weights: weekly.slice(-2), exercise: new Map() });
+    assert.equal(fewWeights.ready, false);
+    const fewDays = computeAdaptive({ ...base, intake: days("2026-10-20", 5, 2000), weights: weekly, exercise: new Map() });
+    assert.equal(fewDays.ready, false);
+    // Días con muy pocas calorías registradas no cuentan como completos
+    const partial = computeAdaptive({ ...base, intake: days("2026-10-01", 29, 500), weights: weekly, exercise: new Map() });
+    assert.equal(partial.ready, false);
+  });
+
+  it("respeta el mínimo seguro", () => {
+    const r = computeAdaptive({ ...base, intake: days("2026-10-01", 29, 1500), weights: weekly.map((w) => ({ ...w, weightKg: 88 })), exercise: new Map() });
+    assert.ok(r.ready);
+    if (!r.ready) return;
+    assert.equal(r.tdee, 1500);
+    assert.equal(r.suggestedTarget, 1500);
+    assert.ok(r.clampedToMin);
   });
 });

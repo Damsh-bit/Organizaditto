@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, Baby, Briefcase, CalendarDays, Check, Dumbbell, Lightbulb, Salad, Scale, ShoppingCart, Zap } from "lucide-react";
+import { ArrowRight, Baby, Briefcase, CalendarDays, Check, Dumbbell, Gauge, Lightbulb, Salad, Scale, ShoppingCart, Zap } from "lucide-react";
 import { ActionButton } from "@/components/action-button";
 import { HabitsToday } from "@/components/habits-today";
 import { CalorieSummary } from "@/components/nutrition/calorie-summary";
@@ -17,8 +17,9 @@ import { KEY_ALLERGENS, stageFor } from "@/lib/baby-guide";
 import { addDaysISO, ageLabel, fmtDateLong, startOfWeekISO, todayISO, TZ, weekdayMon } from "@/lib/dates";
 import { fmtARS, fmtDec, fmtHours, fmtInt, fmtUSD } from "@/lib/format";
 import { weightInsights } from "@/lib/weight";
+import { baseTdee } from "@/lib/adaptive";
 import { getProfileContext } from "@/lib/data/settings";
-import { getDaySummary, getIntakeByDay, getPlanItems, listShoppingLists, getExerciseKcal } from "@/lib/data/nutrition";
+import { getAdaptive, getDaySummary, getIntakeByDay, getPlanItems, listShoppingLists, getExerciseKcal } from "@/lib/data/nutrition";
 import { getTrainingSummary, getWeightLogs } from "@/lib/data/training";
 import { getEffectiveRate } from "@/lib/data/rates";
 import { getProjects, getRunningSession, getWorkDays, sumDays } from "@/lib/data/work";
@@ -42,7 +43,7 @@ export default async function HomePage() {
   const weekStart = startOfWeekISO(today);
   const last7 = addDaysISO(today, -7);
 
-  const [summary, plan, training, weights, rateInfo, running, workDays, projects, babyCtx, habits, lists, intake7, ex7] = await Promise.all([
+  const [summary, plan, training, weights, rateInfo, running, workDays, projects, babyCtx, habits, lists, intake7, ex7, adaptive] = await Promise.all([
     getDaySummary(today, ctx),
     getPlanItems(today, today, "adult"),
     getTrainingSummary(today, s.gymDaysPerWeek),
@@ -56,6 +57,7 @@ export default async function HomePage() {
     listShoppingLists(),
     getIntakeByDay(last7, addDaysISO(today, -1)),
     getExerciseKcal(last7, addDaysISO(today, -1)),
+    getAdaptive(ctx),
   ]);
   const exposures = babyCtx.baby ? await getExposureSummary(babyCtx.baby.id) : [];
   const rate = rateInfo.rate.value;
@@ -79,8 +81,8 @@ export default async function HomePage() {
     });
   }
   if (intake7.length >= 3) {
-    const avgDeficit =
-      intake7.reduce((a, r) => a + (ctx.targets.tdee + (ex7.get(r.date) ?? 0) - r.kcal), 0) / intake7.length;
+    const tdee = baseTdee(adaptive, ctx.targets.tdee).value;
+    const avgDeficit = intake7.reduce((a, r) => a + (tdee + (ex7.get(r.date) ?? 0) - r.kcal), 0) / intake7.length;
     insights.push({
       icon: <Salad className="size-4 text-nutri" />,
       text:
@@ -88,6 +90,13 @@ export default async function HomePage() {
           ? `Últimos días: déficit promedio de ${fmtInt(avgDeficit)} kcal/día ≈ ${fmtDec((avgDeficit * 7) / 7700, 2)} kg por semana.${ins.rate != null ? ` La balanza marca ${ins.rate > 0 ? "+" : ""}${fmtDec(ins.rate, 2)} kg/semana.` : ""}`
           : `Últimos días: comiste en promedio ${fmtInt(-avgDeficit)} kcal por encima de tu gasto. ¡A retomar el déficit!`,
       href: "/nutricion/progreso",
+    });
+  }
+  if (adaptive.ready && adaptive.plausible && Math.abs(adaptive.suggestedTarget - ctx.targets.target) >= 100) {
+    insights.push({
+      icon: <Gauge className="size-4 text-nutri" />,
+      text: `Según tus registros gastás ≈ ${fmtInt(adaptive.tdee)} kcal/día. Te conviene ajustar tu objetivo a ${fmtInt(adaptive.suggestedTarget)} kcal (hoy ${fmtInt(ctx.targets.target)}).`,
+      href: "/nutricion/progreso#metabolismo",
     });
   }
   if (isWeighDay && !weighedThisWeek) insights.push({ icon: <Scale className="size-4 text-gym" />, text: "Hoy es tu día de pesaje semanal.", href: "/entrenamiento/peso" });

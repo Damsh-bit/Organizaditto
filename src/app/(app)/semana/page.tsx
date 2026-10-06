@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { addDaysISO, fmtDate, isISODate, startOfWeekISO, todayISO } from "@/lib/dates";
 import { fmtARS, fmtDec, fmtHours, fmtInt, fmtUSD } from "@/lib/format";
 import { getProfileContext } from "@/lib/data/settings";
-import { getExerciseKcal, getIntakeByDay, getWaterByDay } from "@/lib/data/nutrition";
+import { getAdaptive, getExerciseKcal, getIntakeByDay, getWaterByDay } from "@/lib/data/nutrition";
+import { baseTdee } from "@/lib/adaptive";
 import { getWeightLogs, getWorkoutDays } from "@/lib/data/training";
 import { getWorkDays, sumDays } from "@/lib/data/work";
 import { getEffectiveRate } from "@/lib/data/rates";
@@ -25,7 +26,7 @@ export default async function SemanaPage({ searchParams }: { searchParams: Promi
   const ctx = await getProfileContext();
   const s = ctx.settings;
 
-  const [intake, exercise, water, workouts, weights, work, { rate }, babyCtx, habits] = await Promise.all([
+  const [intake, exercise, water, workouts, weights, work, { rate }, babyCtx, habits, adaptive] = await Promise.all([
     getIntakeByDay(start, end),
     getExerciseKcal(start, end),
     getWaterByDay(start, end),
@@ -35,6 +36,7 @@ export default async function SemanaPage({ searchParams }: { searchParams: Promi
     getEffectiveRate(s),
     getBabyContext(),
     getHabitsWeek(start),
+    getAdaptive(ctx),
   ]);
   const [babyLogs, exposures] = babyCtx.baby
     ? await Promise.all([getBabyLogs(babyCtx.baby.id, start, end), getExposureSummary(babyCtx.baby.id)])
@@ -48,7 +50,8 @@ export default async function SemanaPage({ searchParams }: { searchParams: Promi
   const avgKcal = logged.length ? logged.reduce((a, r) => a + r.kcal, 0) / logged.length : 0;
   const avgProtein = logged.length ? logged.reduce((a, r) => a + r.protein, 0) / logged.length : 0;
   const onTarget = logged.filter((r) => Math.abs(r.kcal - (target + (exercise.get(r.date) ?? 0) * eatBack)) <= target * 0.1).length;
-  const deficit = logged.reduce((a, r) => a + (ctx.targets.tdee + (exercise.get(r.date) ?? 0) - r.kcal), 0);
+  const tdee = baseTdee(adaptive, ctx.targets.tdee).value;
+  const deficit = logged.reduce((a, r) => a + (tdee + (exercise.get(r.date) ?? 0) - r.kcal), 0);
   const waterDays = [...water.values()].filter((ml) => ml >= s.waterGoalMl).length;
 
   // Entrenamiento

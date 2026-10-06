@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DailyBarChart } from "@/components/charts";
+import { AdaptiveCard } from "@/components/nutrition/adaptive-card";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState, Stat } from "@/components/stats";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { addDaysISO, fmtDateShort, rangeISO, todayISO } from "@/lib/dates";
 import { fmtDec, fmtInt } from "@/lib/format";
 import { getProfileContext } from "@/lib/data/settings";
-import { getExerciseKcal, getIntakeByDay } from "@/lib/data/nutrition";
+import { baseTdee } from "@/lib/adaptive";
+import { getAdaptive, getExerciseKcal, getIntakeByDay } from "@/lib/data/nutrition";
 import { getWeightLogs } from "@/lib/data/training";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +23,12 @@ export default async function ProgresoPage({ searchParams }: { searchParams: Pro
   const today = todayISO();
   const from = addDaysISO(today, -(days - 1));
   const ctx = await getProfileContext();
-  const [intake, exercise, weights] = await Promise.all([getIntakeByDay(from, today), getExerciseKcal(from, today), getWeightLogs()]);
+  const [intake, exercise, weights, adaptive] = await Promise.all([
+    getIntakeByDay(from, today),
+    getExerciseKcal(from, today),
+    getWeightLogs(),
+    getAdaptive(ctx),
+  ]);
 
   const byDate = new Map(intake.map((r) => [r.date, r]));
   const dates = rangeISO(from, today);
@@ -35,7 +42,8 @@ export default async function ProgresoPage({ searchParams }: { searchParams: Pro
     const budget = target + (exercise.get(r.date) ?? 0) * eatBack;
     return Math.abs(r.kcal - budget) <= target * 0.1;
   }).length;
-  const totalDeficit = logged.reduce((a, r) => a + (ctx.targets.tdee + (exercise.get(r.date) ?? 0) - r.kcal), 0);
+  const tdee = baseTdee(adaptive, ctx.targets.tdee);
+  const totalDeficit = logged.reduce((a, r) => a + (tdee.value + (exercise.get(r.date) ?? 0) - r.kcal), 0);
   const estLossKg = totalDeficit / 7700;
 
   const before = [...weights].filter((w) => w.date <= from).at(-1) ?? weights.find((w) => w.date >= from);
@@ -63,6 +71,13 @@ export default async function ProgresoPage({ searchParams }: { searchParams: Pro
           </Link>
         ))}
       </div>
+
+      <AdaptiveCard
+        result={adaptive}
+        target={target}
+        deficitKcal={ctx.settings.deficitKcal}
+        hasOverride={ctx.settings.targetKcalOverride != null}
+      />
 
       {!logged.length ? (
         <EmptyState emoji="📈" title="Todavía no hay registros en este período" description="Registrá tus comidas en el Diario y acá vas a ver tu evolución." />
@@ -125,7 +140,7 @@ export default async function ProgresoPage({ searchParams }: { searchParams: Pro
                 <tbody className="divide-y tabular">
                   {[...logged].reverse().map((r) => {
                     const ex = exercise.get(r.date) ?? 0;
-                    const balance = r.kcal - (ctx.targets.tdee + ex);
+                    const balance = r.kcal - (tdee.value + ex);
                     return (
                       <tr key={r.date}>
                         <td className="py-1.5 capitalize">
@@ -148,7 +163,7 @@ export default async function ProgresoPage({ searchParams }: { searchParams: Pro
                 </tbody>
               </table>
               <p className="mt-2 text-xs text-muted-foreground">
-                Balance = lo que comiste − (gasto diario estimado {fmtInt(ctx.targets.tdee)} kcal + ejercicio). Negativo = déficit ✔.
+                Balance = lo que comiste − (gasto diario {tdee.real ? "real" : "estimado"} {fmtInt(tdee.value)} kcal + ejercicio). Negativo = déficit ✔.
               </p>
             </CardContent>
           </Card>

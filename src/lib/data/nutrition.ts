@@ -11,11 +11,14 @@ import {
   recipes,
   shoppingListItems,
   shoppingLists,
+  weightLogs,
   workouts,
   type Food,
   type Recipe,
 } from "@/db/schema";
+import { computeAdaptive } from "@/lib/adaptive";
 import { MEALS } from "@/lib/constants";
+import { addDaysISO, todayISO } from "@/lib/dates";
 import { sumMacros, type Macros } from "@/lib/nutrition";
 import type { ProfileContext } from "./settings";
 
@@ -172,6 +175,30 @@ export async function getIntakeByDay(from: string, to: string) {
     .groupBy(foodLogs.date)
     .orderBy(asc(foodLogs.date));
   return rows;
+}
+
+/** Gasto real calculado con las últimas semanas de comidas y pesajes (ver `lib/adaptive`). */
+export async function getAdaptive(ctx: ProfileContext) {
+  const db = await getDb();
+  const today = todayISO();
+  const from = addDaysISO(today, -42);
+  const [intake, exercise, weights] = await Promise.all([
+    getIntakeByDay(from, today),
+    getExerciseKcal(from, today),
+    db.select({ date: weightLogs.date, weightKg: weightLogs.weightKg }).from(weightLogs).orderBy(asc(weightLogs.date)),
+  ]);
+  return computeAdaptive({
+    today,
+    intake,
+    weights,
+    exercise,
+    bmr: ctx.targets.bmr,
+    formulaTdee: ctx.targets.tdee,
+    target: ctx.targets.target,
+    deficitKcal: ctx.settings.deficitKcal,
+    eatBackPct: ctx.settings.exerciseEatBackPct,
+    minSafe: ctx.targets.minSafe,
+  });
 }
 
 export async function getWaterByDay(from: string, to: string) {
