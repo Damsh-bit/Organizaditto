@@ -73,8 +73,17 @@ para evitar conflictos de sincronización). No hace falta instalar ninguna base 
 `OneDrive/Organizaditto/backups` (se sube sola a tu OneDrive). Quedan los últimos 14 días y uno por mes, y se
 restauran desde **Ajustes → Datos y backup**.
 
-> Para usarla desde el celular en la misma red Wi-Fi: `npm run build` y luego `npm start -- -H 0.0.0.0`,
-> y entrá a `http://IP-DE-TU-PC:3000`.
+### Desde el celular, con el Wi-Fi de tu casa
+
+Por seguridad, sin contraseña la app **solo escucha en tu PC**. Para usarla desde el celular:
+
+1. **Ajustes → Usar desde el celular**: poné una contraseña.
+2. Cerrá y volvé a abrir la app (`Iniciar Organizaditto.cmd` o `npm start`): ahora escucha en tu red local.
+3. Escaneá el código QR que aparece en Ajustes (o escribí la dirección, tipo `http://192.168.1.37:3000`), ingresá
+   la contraseña y agregala a la pantalla de inicio.
+
+La PC tiene que estar prendida con la app abierta. La primera vez Windows puede preguntar si Node.js puede usar
+la red: elegí "Redes privadas".
 
 ## Publicarla en internet (Vercel + Neon)
 
@@ -97,11 +106,12 @@ Ver [`.env.example`](.env.example). Todas son opcionales:
 | Variable | Para qué |
 |---|---|
 | `DATABASE_URL` | Postgres de Neon. Si no está, se usa la base local PGlite. |
-| `APP_PASSWORD` | Activa el login con contraseña (recomendado al publicar). |
+| `APP_PASSWORD` | Activa el login con contraseña (obligatorio al publicar). En tu PC también podés ponerla desde Ajustes. |
 | `AUTH_SECRET` | Secreto extra para firmar la sesión (opcional). |
 | `PGLITE_DIR` | Carpeta de la base local (por defecto `~/.organizaditto/pgdata`). |
 | `BACKUP_DIR` | Carpeta del backup automático (por defecto `OneDrive/Organizaditto/backups`). |
 | `AUTO_BACKUP` | `0` desactiva el backup automático. |
+| `HOST` | Fuerza la dirección donde escucha (por defecto `127.0.0.1`, o `0.0.0.0` si hay contraseña). |
 
 ## Scripts
 

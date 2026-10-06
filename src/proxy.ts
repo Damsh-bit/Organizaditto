@@ -3,7 +3,7 @@ import { AUTH_COOKIE, expectedToken, safeEqual } from "@/lib/auth";
 
 export async function proxy(request: NextRequest) {
   const expected = await expectedToken();
-  if (!expected) return NextResponse.next(); // sin APP_PASSWORD: app abierta (uso local)
+  if (!expected) return NextResponse.next(); // sin contraseña: app abierta (solo escucha en esta PC)
 
   const token = request.cookies.get(AUTH_COOKIE)?.value ?? "";
   if (token && safeEqual(token, expected)) return NextResponse.next();

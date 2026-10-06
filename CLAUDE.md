@@ -17,7 +17,11 @@ Todo está conectado: no dupliques lógica entre módulos, reutilizá `src/lib/*
   `shopping` (cantidades de compra), `training` (MET), `weight`, `dates` (siempre `YYYY-MM-DD`, zona AR), `format`.
 - UI: shadcn/ui (radix) en `src/components/ui`; componentes propios por módulo en `src/components/<módulo>`.
   Colores por módulo: `nutri`, `gym`, `work`, `baby` (tokens en `globals.css`).
-- Auth opcional: `src/proxy.ts` + `APP_PASSWORD`.
+- Auth opcional: `src/proxy.ts` con `APP_PASSWORD` (Vercel) o la contraseña local de Ajustes
+  (`~/.organizaditto/access.json`, ver `src/lib/access.ts`). `scripts/serve.mjs` (detrás de `npm run dev`/`start`)
+  escucha solo en 127.0.0.1 si no hay contraseña y en toda la red local si la hay.
+- Backups automáticos diarios en `OneDrive/Organizaditto/backups` (`src/lib/server/auto-backup.ts`); las fotos van en
+  un archivo aparte. Al agregar tablas, sumalas a `BACKUP_TABLES` en `src/lib/server/backup.ts`.
 
 ## Convenciones
 - Fechas como strings ISO (`todayISO()`), nunca `new Date()` para "hoy" (el server puede estar en UTC).

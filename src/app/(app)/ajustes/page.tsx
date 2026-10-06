@@ -5,6 +5,7 @@ import { ActionForm, SubmitButton } from "@/components/action-form";
 import { Field, NativeSelect } from "@/components/form-fields";
 import { PageHeader } from "@/components/page-header";
 import { ImportBackup } from "@/components/settings/import-backup";
+import { PhoneAccess } from "@/components/settings/phone-access";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -59,7 +60,7 @@ export default async function AjustesPage() {
       <PageHeader title="Ajustes" description="Tus datos, objetivos y preferencias. Todo se recalcula automáticamente." />
 
       <Section id="perfil" title="Perfil" description="Se usa para calcular tu gasto calórico (Mifflin-St Jeor).">
-        <ActionForm action={saveProfile} success="Perfil guardado" className="grid gap-4 sm:grid-cols-3">
+        <ActionForm action={saveProfile} success="Perfil guardado" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label="Nombre">
             <Input name="name" defaultValue={s.name ?? ""} />
           </Field>
@@ -102,7 +103,7 @@ export default async function AjustesPage() {
       </Section>
 
       <Section id="nutricion" title="Objetivos de nutrición">
-        <ActionForm action={saveNutritionSettings} className="grid gap-4 sm:grid-cols-3">
+        <ActionForm action={saveNutritionSettings} className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label="Déficit diario (kcal)" hint={`≈ ${(((s.deficitKcal || 0) * 7) / 7700).toFixed(2).replace(".", ",")} kg por semana`}>
             <Input name="deficitKcal" inputMode="numeric" defaultValue={s.deficitKcal} />
           </Field>
@@ -141,7 +142,7 @@ export default async function AjustesPage() {
       </Section>
 
       <Section id="entrenamiento" title="Entrenamiento">
-        <ActionForm action={saveTrainingSettings} className="grid gap-4 sm:grid-cols-3">
+        <ActionForm action={saveTrainingSettings} className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label="Días de gym por semana (objetivo)">
             <Input name="gymDaysPerWeek" inputMode="numeric" defaultValue={s.gymDaysPerWeek} />
           </Field>
@@ -167,7 +168,7 @@ export default async function AjustesPage() {
       </Section>
 
       <Section id="trabajo" title="Trabajo y cotización" description={`Ahora: ${rate.label} (${rate.side}) ${fmtARS(rate.value, 2)} por dólar.`}>
-        <ActionForm action={saveWorkSettings} className="grid gap-4 sm:grid-cols-3">
+        <ActionForm action={saveWorkSettings} className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label="Tarifa por hora (USD)">
             <Input name="hourlyRateUsd" inputMode="decimal" defaultValue={s.hourlyRateUsd} />
           </Field>
@@ -202,7 +203,7 @@ export default async function AjustesPage() {
       </Section>
 
       <Section id="bebe" title="Bebé">
-        <ActionForm action={saveBaby} className="grid gap-4 sm:grid-cols-3">
+        <ActionForm action={saveBaby} className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label="Nombre">
             <Input name="name" defaultValue={baby?.name ?? ""} required />
           </Field>
@@ -253,6 +254,10 @@ export default async function AjustesPage() {
             <SubmitButton>Agregar</SubmitButton>
           </ActionForm>
         </div>
+      </Section>
+
+      <Section id="celular" title="Usar desde el celular">
+        <PhoneAccess />
       </Section>
 
       <Section id="datos" title="Datos y backup">
