@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "organizaditto",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "organizaditto-test",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/dev-test.mjs"],
+      "port": 3100
+    }
+  ]
+}
