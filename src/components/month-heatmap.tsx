@@ -86,7 +86,7 @@ export function MonthHeatmap({
               className={cn(
                 "relative grid aspect-square place-items-center rounded-lg text-xs font-medium transition-transform tabular",
                 l === 0 && "bg-muted/60 text-muted-foreground",
-                l >= 3 && "text-white",
+                l >= 3 && "text-white dark:text-neutral-950",
                 future && "opacity-40",
                 d === today && "ring-2 ring-foreground/70 ring-offset-1 ring-offset-background",
                 linkTemplate && !future && "hover:scale-105",

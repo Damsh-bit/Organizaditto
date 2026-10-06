@@ -50,7 +50,7 @@ export default async function RutinasPage() {
                 ))}
               </ol>
               <div className="flex flex-wrap items-center gap-2">
-                <Button asChild size="sm" className="bg-gym text-white hover:bg-gym/90">
+                <Button asChild size="sm" className="bg-gym text-white dark:text-neutral-950 hover:bg-gym/90">
                   <Link href={`/entrenamiento/nuevo?rutina=${r.id}`}>
                     <Play className="size-3.5" /> Empezar
                   </Link>

@@ -36,7 +36,7 @@ export function WeightDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger ?? (
-          <Button className="bg-gym text-white hover:bg-gym/90">
+          <Button className="bg-gym text-white dark:text-neutral-950 hover:bg-gym/90">
             <Scale className="size-4" /> Registrar peso
           </Button>
         )}

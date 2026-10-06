@@ -155,7 +155,7 @@ export function RoutineEditor({
         <Button variant="ghost" onClick={() => router.back()}>
           Cancelar
         </Button>
-        <Button onClick={submit} disabled={pending} className="bg-gym text-white hover:bg-gym/90">
+        <Button onClick={submit} disabled={pending} className="bg-gym text-white dark:text-neutral-950 hover:bg-gym/90">
           {pending && <Loader2 className="size-4 animate-spin" />} Guardar rutina
         </Button>
       </div>

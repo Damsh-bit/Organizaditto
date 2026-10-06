@@ -29,7 +29,7 @@ export default async function BebePage() {
         title="Cargá los datos de tu bebé"
         description="Con su fecha de nacimiento adapto las recetas, texturas y la guía a su edad."
         action={
-          <Button asChild className="bg-baby text-white hover:bg-baby/90">
+          <Button asChild className="bg-baby text-white dark:text-neutral-950 hover:bg-baby/90">
             <Link href="/ajustes#bebe">Ir a Ajustes</Link>
           </Button>
         }

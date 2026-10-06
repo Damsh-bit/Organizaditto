@@ -224,7 +224,7 @@ export default async function HomePage() {
                     <span
                       className={cn(
                         "grid size-8 place-items-center rounded-full border-2",
-                        done ? "border-gym bg-gym text-white" : d > today ? "border-dashed border-muted" : "border-muted",
+                        done ? "border-gym bg-gym text-white dark:text-neutral-950" : d > today ? "border-dashed border-muted" : "border-muted",
                       )}
                     >
                       {done && <Check className="size-3.5" />}
@@ -242,7 +242,7 @@ export default async function HomePage() {
                 {training.streakWeeks > 0 && <span className="text-muted-foreground"> · racha {training.streakWeeks} sem 🔥</span>}
               </span>
               {!training.days.has(today) ? (
-                <ActionButton size="sm" className="bg-gym text-white hover:bg-gym/90" action={quickWorkout.bind(null, today, "fuerza", 60)}>
+                <ActionButton size="sm" className="bg-gym text-white dark:text-neutral-950 hover:bg-gym/90" action={quickWorkout.bind(null, today, "fuerza", 60)}>
                   <Zap className="size-3.5" /> Fui al gym hoy
                 </ActionButton>
               ) : (

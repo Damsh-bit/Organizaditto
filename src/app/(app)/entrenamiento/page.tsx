@@ -64,7 +64,7 @@ export default async function TrainingPage({ searchParams }: { searchParams: Pro
                 <Zap className="size-4 text-gym" /> Fui al gym hoy
               </ActionButton>
             )}
-            <Button asChild className="bg-gym text-white hover:bg-gym/90">
+            <Button asChild className="bg-gym text-white dark:text-neutral-950 hover:bg-gym/90">
               <Link href="/entrenamiento/nuevo">
                 <Plus className="size-4" /> Registrar entreno
               </Link>
@@ -91,7 +91,7 @@ export default async function TrainingPage({ searchParams }: { searchParams: Pro
                   <span
                     className={cn(
                       "grid size-10 place-items-center rounded-full border-2 transition-colors",
-                      done ? "border-gym bg-gym text-white" : d > today ? "border-dashed border-muted" : "border-muted hover:border-gym/50",
+                      done ? "border-gym bg-gym text-white dark:text-neutral-950" : d > today ? "border-dashed border-muted" : "border-muted hover:border-gym/50",
                     )}
                   >
                     {done ? <Check className="size-4" /> : <span className="text-xs text-muted-foreground">{Number(d.slice(8))}</span>}

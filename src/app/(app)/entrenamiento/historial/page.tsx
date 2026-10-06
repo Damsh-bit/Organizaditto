@@ -26,7 +26,7 @@ export default async function HistorialPage({ searchParams }: { searchParams: Pr
           title={fmtDateLong(date)}
           description="Entrenamientos del día"
           actions={
-            <Button asChild className="bg-gym text-white hover:bg-gym/90">
+            <Button asChild className="bg-gym text-white dark:text-neutral-950 hover:bg-gym/90">
               <Link href={`/entrenamiento/nuevo?fecha=${date}`}>
                 <Plus className="size-4" /> Registrar
               </Link>
@@ -46,7 +46,7 @@ export default async function HistorialPage({ searchParams }: { searchParams: Pr
             description="Si fuiste y te olvidaste de cargarlo, registralo ahora."
             action={
               date <= today && (
-                <ActionButton action={quickWorkout.bind(null, date, "fuerza", 60)} className="bg-gym text-white hover:bg-gym/90">
+                <ActionButton action={quickWorkout.bind(null, date, "fuerza", 60)} className="bg-gym text-white dark:text-neutral-950 hover:bg-gym/90">
                   Marcar que fui (60 min de fuerza)
                 </ActionButton>
               )

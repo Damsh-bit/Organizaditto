@@ -67,7 +67,7 @@ export function RecipeDetail({ recipe, basePath }: { recipe: RecipeFull; basePat
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <Button asChild variant="default" className="bg-nutri text-white hover:bg-nutri/90">
+        <Button asChild variant="default" className="bg-nutri text-white dark:text-neutral-950 hover:bg-nutri/90">
           <Link href={`${basePath}/${recipe.id}/cocinar`}>
             <ChefHat className="size-4" /> Cocinar paso a paso
           </Link>

@@ -197,7 +197,7 @@ export function CookMode({
           <Button variant="outline" size="lg" className="flex-1" disabled={step < 0} onClick={() => setStep(step - 1)}>
             <ChevronLeft className="size-4" /> Anterior
           </Button>
-          <Button size="lg" className="flex-1 bg-nutri text-white hover:bg-nutri/90" onClick={() => setStep(step + 1)}>
+          <Button size="lg" className="flex-1 bg-nutri text-white dark:text-neutral-950 hover:bg-nutri/90" onClick={() => setStep(step + 1)}>
             {step < 0 ? "Empezar" : step === steps.length - 1 ? "Terminar" : "Siguiente"} <ChevronRight className="size-4" />
           </Button>
         </div>

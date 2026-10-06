@@ -71,7 +71,7 @@ export function PlanItemRow({
         />
       )}
       <span className="text-lg leading-none">{item.recipe.emoji ?? "🍽️"}</span>
-      <Link href={`${basePath}/${item.recipe.id}`} className={cn("min-w-0 flex-1 truncate text-sm hover:underline", item.done && "line-through")}>
+      <Link href={`${basePath}/${item.recipe.id}`} className={cn("line-clamp-2 min-w-0 flex-1 text-sm leading-tight hover:underline", item.done && "line-through")}>
         {item.recipe.name}
       </Link>
       <div className="flex items-center rounded-md border">
@@ -263,7 +263,7 @@ function GenerateDialog({ weekStart }: { weekStart: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-nutri text-white hover:bg-nutri/90">
+        <Button className="bg-nutri text-white dark:text-neutral-950 hover:bg-nutri/90">
           <Sparkles className="size-4" /> Generar semana
         </Button>
       </DialogTrigger>

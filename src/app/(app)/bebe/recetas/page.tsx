@@ -18,7 +18,7 @@ export default async function BabyRecipesPage() {
         title="Recetas para el bebé"
         description="Sin sal ni azúcar, con la textura y la edad recomendada de cada una. Purés, papillas y BLW."
         actions={
-          <Button asChild className="bg-baby text-white hover:bg-baby/90">
+          <Button asChild className="bg-baby text-white dark:text-neutral-950 hover:bg-baby/90">
             <Link href="/bebe/recetas/nueva">
               <Plus className="size-4" /> Nueva receta
             </Link>

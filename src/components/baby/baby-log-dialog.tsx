@@ -93,7 +93,7 @@ export function BabyLogDialog({
     >
       <DialogTrigger asChild>
         {trigger ?? (
-          <Button className="bg-baby text-white hover:bg-baby/90">
+          <Button className="bg-baby text-white dark:text-neutral-950 hover:bg-baby/90">
             <Plus className="size-4" /> Registrar comida
           </Button>
         )}
@@ -227,7 +227,7 @@ export function BabyLogDialog({
                 </p>
               )}
             </div>
-            <Button className="w-full bg-baby text-white hover:bg-baby/90" onClick={submit} disabled={pending}>
+            <Button className="w-full bg-baby text-white dark:text-neutral-950 hover:bg-baby/90" onClick={submit} disabled={pending}>
               {pending && <Loader2 className="size-4 animate-spin" />} Guardar
             </Button>
           </div>

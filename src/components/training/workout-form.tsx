@@ -211,7 +211,7 @@ export function WorkoutForm({
                   key={k}
                   type="button"
                   onClick={() => set("intensity", k as "baja")}
-                  className={cn("flex-1 rounded-md py-1 text-sm", v.intensity === k ? "bg-gym text-white" : "text-muted-foreground hover:bg-muted")}
+                  className={cn("flex-1 rounded-md py-1 text-sm", v.intensity === k ? "bg-gym text-white dark:text-neutral-950" : "text-muted-foreground hover:bg-muted")}
                 >
                   {it.label}
                 </button>
@@ -342,7 +342,7 @@ export function WorkoutForm({
         <Button variant="ghost" onClick={() => router.back()}>
           Cancelar
         </Button>
-        <Button size="lg" onClick={submit} disabled={pending} className="bg-gym text-white hover:bg-gym/90">
+        <Button size="lg" onClick={submit} disabled={pending} className="bg-gym text-white dark:text-neutral-950 hover:bg-gym/90">
           {pending && <Loader2 className="size-4 animate-spin" />} Guardar entreno
         </Button>
       </div>

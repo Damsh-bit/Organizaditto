@@ -57,7 +57,7 @@ export function WorkTimer({
             ))}
           </datalist>
         </Field>
-        <Button size="lg" className="bg-work text-white hover:bg-work/90" disabled={pending} onClick={() => run(() => startWorkTimer(project))}>
+        <Button size="lg" className="bg-work text-white dark:text-neutral-950 hover:bg-work/90" disabled={pending} onClick={() => run(() => startWorkTimer(project))}>
           {pending ? <Loader2 className="size-4 animate-spin" /> : <Play className="size-4" />} Empezar jornada
         </Button>
       </div>
@@ -185,7 +185,7 @@ export function WorkLogDialog({
           <Field label="¿Qué hiciste? (opcional)" className="col-span-2">
             <Input name="description" defaultValue={defaults.description ?? ""} />
           </Field>
-          <SubmitButton className="col-span-2 bg-work text-white hover:bg-work/90">Guardar</SubmitButton>
+          <SubmitButton className="col-span-2 bg-work text-white dark:text-neutral-950 hover:bg-work/90">Guardar</SubmitButton>
         </ActionForm>
       </DialogContent>
     </Dialog>
@@ -202,7 +202,7 @@ export function PayoutDialog({ today, rate, pendingUsd }: { today: string; rate:
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-work text-white hover:bg-work/90">
+        <Button className="bg-work text-white dark:text-neutral-950 hover:bg-work/90">
           <Plus className="size-4" /> Registrar cobro
         </Button>
       </DialogTrigger>
@@ -235,7 +235,7 @@ export function PayoutDialog({ today, rate, pendingUsd }: { today: string; rate:
           <Field label="Nota" className="col-span-2">
             <Input name="notes" />
           </Field>
-          <SubmitButton className="col-span-2 bg-work text-white hover:bg-work/90">Guardar</SubmitButton>
+          <SubmitButton className="col-span-2 bg-work text-white dark:text-neutral-950 hover:bg-work/90">Guardar</SubmitButton>
         </ActionForm>
       </DialogContent>
     </Dialog>
