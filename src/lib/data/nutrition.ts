@@ -135,6 +135,8 @@ export type DaySummary = {
   budget: number;
   remaining: number;
   waterMl: number;
+  steps: number | null;
+  sleepHours: number | null;
 };
 
 export async function getDaySummary(date: string, ctx: ProfileContext): Promise<DaySummary> {
@@ -155,6 +157,8 @@ export async function getDaySummary(date: string, ctx: ProfileContext): Promise<
     budget,
     remaining: budget - totals.kcal,
     waterMl: metrics.waterMl,
+    steps: metrics.steps,
+    sleepHours: metrics.sleepHours,
   };
 }
 
@@ -199,6 +203,15 @@ export async function getAdaptive(ctx: ProfileContext) {
     eatBackPct: ctx.settings.exerciseEatBackPct,
     minSafe: ctx.targets.minSafe,
   });
+}
+
+export async function getMetricsByDay(from: string, to: string) {
+  const db = await getDb();
+  return db
+    .select()
+    .from(dailyMetrics)
+    .where(and(gte(dailyMetrics.date, from), lte(dailyMetrics.date, to)))
+    .orderBy(asc(dailyMetrics.date));
 }
 
 export async function getWaterByDay(from: string, to: string) {

@@ -38,6 +38,8 @@ export const settings = pgTable("settings", {
   mealSplit: jsonb("meal_split").$type<MealSplit>(),
   gymDaysPerWeek: integer("gym_days_per_week").notNull().default(4),
   weighInDay: integer("weigh_in_day").notNull().default(1),
+  stepsGoal: integer("steps_goal").notNull().default(8000),
+  sleepGoalHours: doublePrecision("sleep_goal_hours").notNull().default(7.5),
   hourlyRateUsd: doublePrecision("hourly_rate_usd").notNull().default(6),
   workHoursGoalWeek: doublePrecision("work_hours_goal_week").notNull().default(40),
   workDaysGoalWeek: integer("work_days_goal_week").notNull().default(5),

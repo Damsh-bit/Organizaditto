@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, Baby, Briefcase, CalendarDays, Check, Dumbbell, Gauge, Lightbulb, Salad, Scale, ShoppingCart, Syringe, Zap } from "lucide-react";
+import { ArrowRight, Baby, Briefcase, CalendarDays, Check, Dumbbell, Gauge, Lightbulb, Moon, Salad, Scale, ShoppingCart, Syringe, Zap } from "lucide-react";
 import { ActionButton } from "@/components/action-button";
 import { HabitsToday } from "@/components/habits-today";
 import { CalorieSummary } from "@/components/nutrition/calorie-summary";
 import { WaterTracker } from "@/components/nutrition/water-tracker";
+import { StepsSleep } from "@/components/steps-sleep";
 import { ProgressBar } from "@/components/stats";
 import { WeightDialog } from "@/components/training/weight-dialog";
 import { WorkTimer } from "@/components/work/work-client";
@@ -19,7 +20,16 @@ import { fmtARS, fmtDec, fmtHours, fmtInt, fmtUSD } from "@/lib/format";
 import { weightInsights } from "@/lib/weight";
 import { baseTdee } from "@/lib/adaptive";
 import { getProfileContext } from "@/lib/data/settings";
-import { getAdaptive, getDaySummary, getIntakeByDay, getPlanItems, listShoppingLists, getExerciseKcal } from "@/lib/data/nutrition";
+import {
+  getAdaptive,
+  getDaySummary,
+  getExerciseKcal,
+  getIntakeByDay,
+  getMetricsByDay,
+  getPlanItems,
+  listShoppingLists,
+} from "@/lib/data/nutrition";
+import { SHORT_SLEEP_H, sleepVsIntake } from "@/lib/sleep";
 import { getTrainingSummary, getWeightLogs } from "@/lib/data/training";
 import { getEffectiveRate } from "@/lib/data/rates";
 import { getProjects, getRunningSession, getWorkDays, sumDays } from "@/lib/data/work";
@@ -44,7 +54,8 @@ export default async function HomePage() {
   const weekStart = startOfWeekISO(today);
   const last7 = addDaysISO(today, -7);
 
-  const [summary, plan, training, weights, rateInfo, running, workDays, projects, babyCtx, habits, lists, intake7, ex7, adaptive] = await Promise.all([
+  const [summary, plan, training, weights, rateInfo, running, workDays, projects, babyCtx, habits, lists, intake7, ex7, adaptive, metrics42, intake42] =
+    await Promise.all([
     getDaySummary(today, ctx),
     getPlanItems(today, today, "adult"),
     getTrainingSummary(today, s.gymDaysPerWeek),
@@ -59,6 +70,8 @@ export default async function HomePage() {
     getIntakeByDay(last7, addDaysISO(today, -1)),
     getExerciseKcal(last7, addDaysISO(today, -1)),
     getAdaptive(ctx),
+    getMetricsByDay(addDaysISO(today, -42), today),
+    getIntakeByDay(addDaysISO(today, -42), today),
   ]);
   const [exposures, babyVaccines] = babyCtx.baby
     ? await Promise.all([getExposureSummary(babyCtx.baby.id), getVaccines(babyCtx.baby.id)])
@@ -100,6 +113,17 @@ export default async function HomePage() {
       icon: <Gauge className="size-4 text-nutri" />,
       text: `Según tus registros gastás ≈ ${fmtInt(adaptive.tdee)} kcal/día. Te conviene ajustar tu objetivo a ${fmtInt(adaptive.suggestedTarget)} kcal (hoy ${fmtInt(ctx.targets.target)}).`,
       href: "/nutricion/progreso#metabolismo",
+    });
+  }
+  if (summary.sleepHours != null && summary.sleepHours < SHORT_SLEEP_H) {
+    const sl = sleepVsIntake(metrics42, intake42, ctx.targets.target, today);
+    insights.push({
+      icon: <Moon className="size-4 text-indigo-500" />,
+      text:
+        sl && sl.diff >= 100
+          ? `Dormiste ${fmtDec(summary.sleepHours, 1)} h. Según tus registros, los días que dormís poco comés ≈ ${fmtInt(sl.diff)} kcal más: tené a mano algo rico y proteico.`
+          : `Dormiste ${fmtDec(summary.sleepHours, 1)} h: hoy puede haber más hambre de lo normal. Priorizá proteína y verduras, y si podés, acostate más temprano.`,
+      href: "/nutricion",
     });
   }
   if (isWeighDay && !weighedThisWeek) insights.push({ icon: <Scale className="size-4 text-gym" />, text: "Hoy es tu día de pesaje semanal.", href: "/entrenamiento/peso" });
@@ -312,6 +336,7 @@ export default async function HomePage() {
                 <ProgressBar value={ins.progressPct} max={1} barClassName="bg-gym" overClassName="bg-gym" className="mt-2" />
               )}
             </div>
+            <StepsSleep date={today} steps={summary.steps} sleepHours={summary.sleepHours} stepsGoal={s.stepsGoal} sleepGoal={s.sleepGoalHours} />
           </CardContent>
         </Card>
 

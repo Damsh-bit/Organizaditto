@@ -154,6 +154,12 @@ export default async function AjustesPage() {
               ))}
             </NativeSelect>
           </Field>
+          <Field label="Pasos por día (objetivo)" hint="8.000 a 10.000 suma mucho al déficit">
+            <Input name="stepsGoal" inputMode="numeric" defaultValue={s.stepsGoal} />
+          </Field>
+          <Field label="Horas de sueño (objetivo)">
+            <Input name="sleepGoalHours" inputMode="decimal" defaultValue={s.sleepGoalHours} />
+          </Field>
           <div className="flex items-end justify-end">
             <SubmitButton>Guardar</SubmitButton>
           </div>

@@ -144,6 +144,8 @@ export async function saveTrainingSettings(fd: FormData): Promise<ActionResult> 
     .set({
       gymDaysPerWeek: Math.round(parseNum(fd.get("gymDaysPerWeek")) ?? 4),
       weighInDay: Math.round(parseNum(fd.get("weighInDay")) ?? 1),
+      stepsGoal: Math.max(1000, Math.round(parseNum(fd.get("stepsGoal")) ?? 8000)),
+      sleepGoalHours: Math.min(12, Math.max(5, parseNum(fd.get("sleepGoalHours")) ?? 7.5)),
       updatedAt: new Date(),
     })
     .where(eq(settings.id, 1));

@@ -30,6 +30,8 @@ semanal recalcula tus objetivos y tus horas de trabajo se convierten a pesos con
 - **Fotos de progreso** (frente, perfil y espalda) con comparador antes/después y el peso de cada fecha. Se
   achican en el navegador y quedan en tu base (en el backup automático van en un archivo aparte).
 - Rutinas editables y **progresión** por ejercicio.
+- **Pasos y sueño** con objetivos: promedios en Entreno y en el resumen semanal, y cruce con lo que comés
+  (los días que dormís poco, ¿comés más?). Si dormiste poco, el Inicio te avisa.
 
 ### 💼 Trabajo
 - **Cronómetro de jornada** con ganancia en vivo, carga rápida de horas y registro manual (total o desde/hasta).

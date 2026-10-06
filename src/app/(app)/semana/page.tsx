@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { addDaysISO, fmtDate, isISODate, startOfWeekISO, todayISO } from "@/lib/dates";
 import { fmtARS, fmtDec, fmtHours, fmtInt, fmtUSD } from "@/lib/format";
 import { getProfileContext } from "@/lib/data/settings";
-import { getAdaptive, getExerciseKcal, getIntakeByDay, getWaterByDay } from "@/lib/data/nutrition";
+import { getAdaptive, getExerciseKcal, getIntakeByDay, getMetricsByDay, getWaterByDay } from "@/lib/data/nutrition";
 import { baseTdee } from "@/lib/adaptive";
 import { getWeightLogs, getWorkoutDays } from "@/lib/data/training";
 import { getWorkDays, sumDays } from "@/lib/data/work";
@@ -26,7 +26,7 @@ export default async function SemanaPage({ searchParams }: { searchParams: Promi
   const ctx = await getProfileContext();
   const s = ctx.settings;
 
-  const [intake, exercise, water, workouts, weights, work, { rate }, babyCtx, habits, adaptive] = await Promise.all([
+  const [intake, exercise, water, workouts, weights, work, { rate }, babyCtx, habits, adaptive, metrics] = await Promise.all([
     getIntakeByDay(start, end),
     getExerciseKcal(start, end),
     getWaterByDay(start, end),
@@ -37,6 +37,7 @@ export default async function SemanaPage({ searchParams }: { searchParams: Promi
     getBabyContext(),
     getHabitsWeek(start),
     getAdaptive(ctx),
+    getMetricsByDay(start, end),
   ]);
   const [babyLogs, exposures] = babyCtx.baby
     ? await Promise.all([getBabyLogs(babyCtx.baby.id, start, end), getExposureSummary(babyCtx.baby.id)])
@@ -53,6 +54,13 @@ export default async function SemanaPage({ searchParams }: { searchParams: Promi
   const tdee = baseTdee(adaptive, ctx.targets.tdee).value;
   const deficit = logged.reduce((a, r) => a + (tdee + (exercise.get(r.date) ?? 0) - r.kcal), 0);
   const waterDays = [...water.values()].filter((ml) => ml >= s.waterGoalMl).length;
+
+  // Movimiento y descanso
+  const stepDays = metrics.filter((m) => m.steps != null);
+  const sleepDays = metrics.filter((m) => m.sleepHours != null);
+  const avgSteps = stepDays.length ? stepDays.reduce((a, m) => a + m.steps!, 0) / stepDays.length : null;
+  const avgSleep = sleepDays.length ? sleepDays.reduce((a, m) => a + m.sleepHours!, 0) / sleepDays.length : null;
+  const stepGoalDays = stepDays.filter((m) => m.steps! >= s.stepsGoal).length;
 
   // Entrenamiento
   const gymDays = workouts.size;
@@ -122,6 +130,12 @@ export default async function SemanaPage({ searchParams }: { searchParams: Promi
           <Row label="Días entrenados" value={`${gymDays} de ${s.gymDaysPerWeek}`} />
           <Row label="Tiempo" value={`${fmtInt(gymMinutes)} min`} />
           <Row label="Calorías quemadas" value={`${fmtInt(gymKcal)} kcal`} hint={`+${fmtInt(gymKcal * eatBack)} sumadas a tu comida`} />
+          <Row
+            label="Pasos promedio"
+            value={avgSteps != null ? fmtInt(avgSteps) : "—"}
+            hint={avgSteps != null ? `${stepGoalDays} ${stepGoalDays === 1 ? "día" : "días"} llegaste a ${fmtInt(s.stepsGoal)}` : "cargalos en Inicio o Entreno"}
+          />
+          <Row label="Sueño promedio" value={avgSleep != null ? `${fmtDec(avgSleep, 1)} h` : "—"} hint={`objetivo ${fmtDec(s.sleepGoalHours, 1)} h`} />
         </Block>
         <Block icon={<Scale className="size-4 text-gym" />} title="Peso" href="/entrenamiento/peso">
           <Row label="Último pesaje" value={lastW ? `${fmtDec(lastW.weightKg, 1)} kg` : "—"} hint={lastW ? fmtDate(lastW.date) : "sin pesaje esta semana"} />

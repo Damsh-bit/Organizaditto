@@ -19,6 +19,8 @@ import { WORKOUT_TYPES } from "@/lib/training";
 import { weightInsights } from "@/lib/weight";
 import { getProfileContext } from "@/lib/data/settings";
 import { getRecentWorkouts, getTrainingSummary, getWeightLogs, getWorkoutDays } from "@/lib/data/training";
+import { getDayMetrics, getMetricsByDay } from "@/lib/data/nutrition";
+import { StepsSleep } from "@/components/steps-sleep";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Entrenamiento" };
@@ -31,12 +33,18 @@ export default async function TrainingPage({ searchParams }: { searchParams: Pro
   if (!ctx.settings.onboarded) redirect("/bienvenida");
   const goal = ctx.settings.gymDaysPerWeek;
 
-  const [summary, monthDays, recent, weights] = await Promise.all([
+  const [summary, monthDays, recent, weights, dayMetrics, week] = await Promise.all([
     getTrainingSummary(today, goal),
     getWorkoutDays(month, endOfMonthISO(month)),
     getRecentWorkouts(5),
     getWeightLogs(addDaysISO(today, -365)),
+    getDayMetrics(today),
+    getMetricsByDay(addDaysISO(today, -6), today),
   ]);
+  const stepDays = week.filter((m) => m.steps != null);
+  const sleepDays = week.filter((m) => m.sleepHours != null);
+  const avgSteps = stepDays.length ? stepDays.reduce((a, m) => a + m.steps!, 0) / stepDays.length : null;
+  const avgSleep = sleepDays.length ? sleepDays.reduce((a, m) => a + m.sleepHours!, 0) / sleepDays.length : null;
   const trainedToday = summary.days.has(today);
   const insights = weightInsights(weights, ctx.settings.startWeightKg, ctx.settings.goalWeightKg);
   const weightSeries = weights.filter((w) => w.date >= addDaysISO(today, -120)).map((w) => ({ date: w.date, value: w.weightKg }));
@@ -111,6 +119,26 @@ export default async function TrainingPage({ searchParams }: { searchParams: Pro
             </div>
             <ProgressBar value={summary.thisWeekDays} max={goal} barClassName="bg-gym" overClassName="bg-gym" />
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Movimiento y descanso</CardTitle>
+          <CardDescription>
+            {avgSteps != null || avgSleep != null
+              ? `Últimos 7 días: ${avgSteps != null ? `${fmtInt(avgSteps)} pasos` : "sin pasos"} y ${avgSleep != null ? `${fmtDec(avgSleep, 1)} h de sueño` : "sin sueño"} en promedio.`
+              : "Los pasos suman al déficit sin cansarte y dormir bien baja el hambre y mejora el entrenamiento."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <StepsSleep
+            date={today}
+            steps={dayMetrics.steps}
+            sleepHours={dayMetrics.sleepHours}
+            stepsGoal={ctx.settings.stepsGoal}
+            sleepGoal={ctx.settings.sleepGoalHours}
+          />
         </CardContent>
       </Card>
 

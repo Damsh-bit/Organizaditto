@@ -12,6 +12,7 @@ import { matches } from "../src/lib/search";
 import { computeAdaptive } from "../src/lib/adaptive";
 import { assess, lmsAt, normalCdf, valueAtZ, zScore } from "../src/lib/growth";
 import { vaccineRows } from "../src/lib/baby-vaccines";
+import { sleepVsIntake } from "../src/lib/sleep";
 
 /** RNG determinista (mulberry32) para que los tests sean reproducibles. */
 function rng(seed: number) {
@@ -280,5 +281,26 @@ describe("bebé: crecimiento y vacunas", () => {
     assert.equal(by("triple-viral-1").status, "futura");
     // La antigripal es opcional (de campaña): nunca figura como atrasada
     assert.notEqual(by("gripe-1").status, "atrasada");
+  });
+});
+
+describe("sueño y hambre", () => {
+  it("compara lo comido después de dormir poco vs. bien", () => {
+    const today = "2026-10-30";
+    const metrics = [
+      { date: "2026-10-01", sleepHours: 5.5 },
+      { date: "2026-10-02", sleepHours: 6 },
+      { date: "2026-10-03", sleepHours: 5 },
+      { date: "2026-10-04", sleepHours: 8 },
+      { date: "2026-10-05", sleepHours: 7.5 },
+      { date: "2026-10-06", sleepHours: 7 },
+      { date: "2026-10-07", sleepHours: 6.75 }, // zona intermedia: no cuenta
+    ];
+    const intake = metrics.map((m, i) => ({ date: m.date, kcal: i < 3 ? 2400 : 2000, entries: 4 }));
+    const r = sleepVsIntake(metrics, intake, 2000, today)!;
+    assert.equal(r.nShort, 3);
+    assert.equal(r.nGood, 3);
+    assert.equal(r.diff, 400);
+    assert.equal(sleepVsIntake(metrics.slice(0, 4), intake, 2000, today), null);
   });
 });

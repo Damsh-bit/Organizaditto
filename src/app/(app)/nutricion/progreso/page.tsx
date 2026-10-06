@@ -9,7 +9,8 @@ import { addDaysISO, fmtDateShort, rangeISO, todayISO } from "@/lib/dates";
 import { fmtDec, fmtInt } from "@/lib/format";
 import { getProfileContext } from "@/lib/data/settings";
 import { baseTdee } from "@/lib/adaptive";
-import { getAdaptive, getExerciseKcal, getIntakeByDay } from "@/lib/data/nutrition";
+import { getAdaptive, getExerciseKcal, getIntakeByDay, getMetricsByDay } from "@/lib/data/nutrition";
+import { sleepVsIntake, SHORT_SLEEP_H, GOOD_SLEEP_H } from "@/lib/sleep";
 import { getWeightLogs } from "@/lib/data/training";
 import { cn } from "@/lib/utils";
 
@@ -23,12 +24,16 @@ export default async function ProgresoPage({ searchParams }: { searchParams: Pro
   const today = todayISO();
   const from = addDaysISO(today, -(days - 1));
   const ctx = await getProfileContext();
-  const [intake, exercise, weights, adaptive] = await Promise.all([
+  const sleepFrom = addDaysISO(today, -60);
+  const [intake, exercise, weights, adaptive, metrics60, intake60] = await Promise.all([
     getIntakeByDay(from, today),
     getExerciseKcal(from, today),
     getWeightLogs(),
     getAdaptive(ctx),
+    getMetricsByDay(sleepFrom, today),
+    getIntakeByDay(sleepFrom, today),
   ]);
+  const sleep = sleepVsIntake(metrics60, intake60, ctx.targets.target, today);
 
   const byDate = new Map(intake.map((r) => [r.date, r]));
   const dates = rangeISO(from, today);
@@ -78,6 +83,21 @@ export default async function ProgresoPage({ searchParams }: { searchParams: Pro
         deficitKcal={ctx.settings.deficitKcal}
         hasOverride={ctx.settings.targetKcalOverride != null}
       />
+
+      {sleep && Math.abs(sleep.diff) >= 100 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Sueño y hambre</CardTitle>
+            <CardDescription>
+              Últimos 60 días: después de dormir menos de {fmtDec(SHORT_SLEEP_H, 1)} h comiste en promedio {fmtInt(sleep.shortAvg)} kcal; con{" "}
+              {fmtInt(GOOD_SLEEP_H)} h o más, {fmtInt(sleep.goodAvg)} kcal.{" "}
+              {sleep.diff > 0
+                ? `Son ${fmtInt(sleep.diff)} kcal más por día: dormir bien también es parte del déficit.`
+                : `Curiosamente comés ${fmtInt(-sleep.diff)} kcal menos cuando dormís poco.`}
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
 
       {!logged.length ? (
         <EmptyState emoji="📈" title="Todavía no hay registros en este período" description="Registrá tus comidas en el Diario y acá vas a ver tu evolución." />

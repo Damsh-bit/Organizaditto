@@ -134,6 +134,24 @@ export async function addWater(date: string, deltaMl: number): Promise<ActionRes
   return ok();
 }
 
+/** Pasos del día o horas dormidas la noche anterior (null = borrar). */
+export async function setDayMetric(date: string, field: "steps" | "sleepHours", value: number | null): Promise<ActionResult> {
+  if (!isISODate(date)) return fail("Fecha inválida");
+  if (value != null) {
+    if (!Number.isFinite(value) || value < 0) return fail("Valor inválido");
+    if (field === "steps" && value > 100000) return fail("Revisá los pasos");
+    if (field === "sleepHours" && value > 16) return fail("Revisá las horas de sueño");
+  }
+  const v = value == null ? null : field === "steps" ? Math.round(value) : Math.round(value * 4) / 4;
+  const db = await getDb();
+  await db
+    .insert(dailyMetrics)
+    .values({ date, [field]: v })
+    .onConflictDoUpdate({ target: dailyMetrics.date, set: { [field]: v } });
+  refresh();
+  return ok();
+}
+
 /* ================================ Plan semanal ================================ */
 
 const planItemSchema = z.object({
