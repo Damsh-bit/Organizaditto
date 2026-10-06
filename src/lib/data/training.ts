@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { getDb } from "@/db";
-import { exercises, routineExercises, routines, weightLogs, workoutSets, workouts } from "@/db/schema";
+import { exercises, progressPhotos, routineExercises, routines, weightLogs, workoutSets, workouts } from "@/db/schema";
 import { addDaysISO, startOfWeekISO } from "@/lib/dates";
 
 export async function getWeightLogs(from?: string, to?: string) {
@@ -174,3 +174,20 @@ export async function getWorkoutFormContext() {
     lastSets: Object.fromEntries(last.entries()),
   };
 }
+
+/** Fotos de progreso sin el contenido (la imagen se sirve en /api/fotos/[id]). */
+export async function getProgressPhotos() {
+  const db = await getDb();
+  return db
+    .select({
+      id: progressPhotos.id,
+      date: progressPhotos.date,
+      pose: progressPhotos.pose,
+      width: progressPhotos.width,
+      height: progressPhotos.height,
+    })
+    .from(progressPhotos)
+    .orderBy(desc(progressPhotos.date), asc(progressPhotos.id));
+}
+
+export type ProgressPhotoMeta = Awaited<ReturnType<typeof getProgressPhotos>>[number];

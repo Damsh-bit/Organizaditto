@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "@/db";
-import { exercises, routineExercises, routines, weightLogs, workoutSets, workouts } from "@/db/schema";
+import { exercises, progressPhotos, routineExercises, routines, weightLogs, workoutSets, workouts } from "@/db/schema";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { isISODate } from "@/lib/dates";
 import { parseNum } from "@/lib/format";
@@ -196,4 +196,41 @@ export async function createExercise(fd: FormData): Promise<ActionResult<{ id: n
     .returning({ id: exercises.id });
   refresh();
   return ok("Ejercicio creado", { id: ins.id });
+}
+
+/* ================================ Fotos de progreso ================================ */
+
+const POSES = ["frente", "perfil", "espalda"] as const;
+const MAX_PHOTO_BYTES = 900 * 1024;
+
+export async function uploadProgressPhoto(fd: FormData): Promise<ActionResult> {
+  const file = fd.get("photo");
+  const date = String(fd.get("date") ?? "");
+  const pose = String(fd.get("pose") ?? "frente");
+  if (!(file instanceof Blob) || file.size === 0) return fail("Elegí una foto");
+  if (!["image/jpeg", "image/webp", "image/png"].includes(file.type)) return fail("Formato de imagen no soportado");
+  if (file.size > MAX_PHOTO_BYTES) return fail("La foto es demasiado grande");
+  if (!isISODate(date)) return fail("Fecha inválida");
+  if (!(POSES as readonly string[]).includes(pose)) return fail("Pose inválida");
+  const width = Math.round(parseNum(fd.get("width")) ?? 0) || null;
+  const height = Math.round(parseNum(fd.get("height")) ?? 0) || null;
+  const db = await getDb();
+  await db.insert(progressPhotos).values({
+    date,
+    pose,
+    mime: file.type,
+    data: Buffer.from(await file.arrayBuffer()).toString("base64"),
+    width,
+    height,
+    bytes: file.size,
+  });
+  refresh();
+  return ok("Foto guardada");
+}
+
+export async function deleteProgressPhoto(id: number): Promise<ActionResult> {
+  const db = await getDb();
+  await db.delete(progressPhotos).where(eq(progressPhotos.id, id));
+  refresh();
+  return ok("Foto eliminada");
 }

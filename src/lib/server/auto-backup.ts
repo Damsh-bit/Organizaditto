@@ -3,17 +3,20 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { gunzipSync, gzipSync } from "node:zlib";
-import { eq } from "drizzle-orm";
-import { getDb } from "@/db";
-import { settings } from "@/db/schema";
+import { eq, sql } from "drizzle-orm";
+import { getDb, type DB } from "@/db";
+import { progressPhotos, settings } from "@/db/schema";
 import { todayISO } from "@/lib/dates";
-import { exportAll } from "./backup";
+import { exportAll, importAll } from "./backup";
 
 /**
  * Backup automático: una copia comprimida por día en una carpeta de OneDrive,
  * así los datos también quedan en la nube aunque la base viva en la PC.
  */
 const FILE_RE = /^organizaditto-(\d{4}-\d{2}-\d{2})\.json\.gz$/;
+/** Las fotos van aparte, en un solo archivo que se reescribe cuando cambian (si no, cada backup diario pesaría mucho). */
+const PHOTOS_FILE = "organizaditto-fotos.json.gz";
+const PHOTOS_SIG = ".organizaditto-fotos.sig";
 const KEEP_DAILY = 14;
 const KEEP_MONTHLY = 12;
 const CHECK_EVERY_MS = 10 * 60_000;
@@ -55,16 +58,48 @@ export async function writeAutoBackup(): Promise<BackupFile> {
   const dir = autoBackupDir();
   if (!dir) throw new Error("El backup automático está desactivado en este entorno");
   const db = await getDb();
-  const data = await exportAll(db);
+  const data = await exportAll(db, { exclude: ["progress_photos"] });
   const gz = gzipSync(JSON.stringify(data));
   await fs.mkdir(dir, { recursive: true });
   const name = `organizaditto-${todayISO()}.json.gz`;
-  const tmp = path.join(dir, `.${name}.tmp`);
-  await fs.writeFile(tmp, gz);
-  await fs.rename(tmp, path.join(dir, name));
+  await writeAtomic(dir, name, gz);
+  await writePhotosIfChanged(db, dir);
   await prune(dir);
   state.error = undefined;
   return { name, date: todayISO(), bytes: gz.length };
+}
+
+async function writeAtomic(dir: string, name: string, content: Buffer | string) {
+  const tmp = path.join(dir, `.${name}.tmp`);
+  await fs.writeFile(tmp, content);
+  await fs.rename(tmp, path.join(dir, name));
+}
+
+async function writePhotosIfChanged(db: DB, dir: string) {
+  const [row] = await db
+    .select({
+      n: sql<number>`count(*)`.mapWith(Number),
+      max: sql<number>`coalesce(max(${progressPhotos.id}), 0)`.mapWith(Number),
+      sum: sql<number>`coalesce(sum(${progressPhotos.id}), 0)`.mapWith(Number),
+    })
+    .from(progressPhotos);
+  const sig = `${row.n}-${row.max}-${row.sum}`;
+  const prev = await fs.readFile(path.join(dir, PHOTOS_SIG), "utf8").catch(() => null);
+  if (prev === sig || (row.n === 0 && prev == null)) return;
+  const data = await exportAll(db, { only: ["progress_photos"] });
+  await writeAtomic(dir, PHOTOS_FILE, gzipSync(JSON.stringify(data)));
+  await writeAtomic(dir, PHOTOS_SIG, sig);
+}
+
+/** Si la base quedó sin fotos (por ejemplo, en una compu nueva), las recupera del archivo de fotos. */
+export async function restorePhotosIfEmpty(db: DB) {
+  const dir = autoBackupDir();
+  if (!dir) return 0;
+  const [row] = await db.select({ n: sql<number>`count(*)`.mapWith(Number) }).from(progressPhotos);
+  if (row.n > 0) return 0;
+  const buf = await fs.readFile(path.join(dir, PHOTOS_FILE)).catch(() => null);
+  if (!buf) return 0;
+  return importAll(db, parseBackup(buf));
 }
 
 /** Deja los últimos 14 días y, de antes, el último de cada mes (hasta 12 meses). */

@@ -14,12 +14,13 @@ import { fmtDec, fmtInt } from "@/lib/format";
 import { bmi, bmiLabel } from "@/lib/nutrition";
 import { weightInsights } from "@/lib/weight";
 import { getProfileContext } from "@/lib/data/settings";
-import { getWeightLogs } from "@/lib/data/training";
+import { getProgressPhotos, getWeightLogs } from "@/lib/data/training";
+import { ProgressPhotos } from "@/components/training/progress-photos";
 
 export const metadata: Metadata = { title: "Peso" };
 
 export default async function PesoPage() {
-  const [ctx, logs] = await Promise.all([getProfileContext(), getWeightLogs()]);
+  const [ctx, logs, photos] = await Promise.all([getProfileContext(), getWeightLogs(), getProgressPhotos()]);
   const today = todayISO();
   const s = ctx.settings;
   const ins = weightInsights(logs, s.startWeightKg, s.goalWeightKg);
@@ -148,6 +149,16 @@ export default async function PesoPage() {
           </Card>
         </>
       )}
+
+      <Card id="fotos">
+        <CardHeader>
+          <CardTitle>Fotos de progreso</CardTitle>
+          <CardDescription>De frente, perfil y espalda cada 2 a 4 semanas. Compará dos fechas lado a lado.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ProgressPhotos photos={photos} weights={logs.map((l) => ({ date: l.date, weightKg: l.weightKg }))} today={today} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

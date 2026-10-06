@@ -9,7 +9,7 @@ import { isISODate, todayISO } from "@/lib/dates";
 import { parseNum } from "@/lib/format";
 import { DEFAULT_MEAL_SPLIT } from "@/lib/constants";
 import { importAll } from "@/lib/server/backup";
-import { parseBackup, readAutoBackup, writeAutoBackup } from "@/lib/server/auto-backup";
+import { parseBackup, readAutoBackup, restorePhotosIfEmpty, writeAutoBackup } from "@/lib/server/auto-backup";
 
 function str(fd: FormData, key: string): string | null {
   const v = fd.get(key);
@@ -257,8 +257,9 @@ export async function restoreAutoBackup(name: string): Promise<ActionResult> {
     await writeAutoBackup();
     const db = await getDb();
     const total = await importAll(db, payload);
+    const photos = await restorePhotosIfEmpty(db);
     refresh();
-    return ok(`Backup restaurado (${total} registros)`);
+    return ok(`Backup restaurado (${total} registros${photos ? ` y ${photos} fotos` : ""})`);
   } catch (e) {
     return fail(e instanceof Error ? e.message : "No se pudo restaurar");
   }

@@ -349,6 +349,23 @@ export const weightLogs = pgTable(
   (t) => [uniqueIndex("weight_logs_date_idx").on(t.date)],
 );
 
+/** Fotos de progreso (JPEG achicado en el navegador, guardado en base64). */
+export const progressPhotos = pgTable(
+  "progress_photos",
+  {
+    id: serial("id").primaryKey(),
+    date: date("date").notNull(),
+    pose: text("pose").notNull().default("frente"), // frente | perfil | espalda
+    mime: text("mime").notNull().default("image/jpeg"),
+    data: text("data").notNull(),
+    width: integer("width"),
+    height: integer("height"),
+    bytes: integer("bytes"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => [index("progress_photos_date_idx").on(t.date)],
+);
+
 /* ------------------------------------------------------------------ */
 /* Hábitos generales                                                   */
 /* ------------------------------------------------------------------ */
@@ -602,6 +619,7 @@ export type Routine = typeof routines.$inferSelect;
 export type Workout = typeof workouts.$inferSelect;
 export type WorkoutSet = typeof workoutSets.$inferSelect;
 export type WeightLog = typeof weightLogs.$inferSelect;
+export type ProgressPhoto = typeof progressPhotos.$inferSelect;
 export type Habit = typeof habits.$inferSelect;
 export type WorkLog = typeof workLogs.$inferSelect;
 export type Payout = typeof payouts.$inferSelect;

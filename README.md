@@ -27,6 +27,8 @@ semanal recalcula tus objetivos y tus horas de trabajo se convierten a pesos con
 - Registro de sesiones con rutina precargada, series × reps × kg (o minutos/km), referencia de la última vez.
 - **Calorías quemadas** estimadas (MET × peso × tiempo) que se suman a tu comida del día.
 - **Peso semanal** con medidas, IMC, ritmo real vs. el esperado por tu déficit y fecha estimada de llegada a la meta.
+- **Fotos de progreso** (frente, perfil y espalda) con comparador antes/después y el peso de cada fecha. Se
+  achican en el navegador y quedan en tu base (en el backup automático van en un archivo aparte).
 - Rutinas editables y **progresión** por ejercicio.
 
 ### 💼 Trabajo
