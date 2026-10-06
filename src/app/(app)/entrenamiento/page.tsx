@@ -161,7 +161,7 @@ export default async function TrainingPage({ searchParams }: { searchParams: Pro
               max={90}
               linkTemplate="/entrenamiento/historial?fecha={date}"
               monthHrefTemplate="/entrenamiento?mes={month}"
-              goalLine={`${monthDays.size} días entrenados en el mes`}
+              goalLine={`${monthDays.size} ${monthDays.size === 1 ? "día entrenado" : "días entrenados"} en el mes`}
             />
           </CardContent>
         </Card>
