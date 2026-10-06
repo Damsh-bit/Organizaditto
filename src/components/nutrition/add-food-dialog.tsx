@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { ArrowLeft, Loader2, Plus, Search, Star, Zap } from "lucide-react";
+import { ArrowLeft, Globe, Loader2, Plus, Search, Star, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -15,6 +15,7 @@ import { macrosFor, scaleMacros } from "@/lib/nutrition";
 import { matches } from "@/lib/search";
 import type { FoodOption, RecipeOption } from "@/lib/data/nutrition";
 import { cn } from "@/lib/utils";
+import { ProductSearch } from "./product-search";
 
 export type FrequentItem = {
   foodId: number | null;
@@ -43,7 +44,7 @@ export function AddFoodDialog({
   trigger?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const [tab, setTab] = useState<"buscar" | "rapido">("buscar");
+  const [tab, setTab] = useState<"buscar" | "rapido" | "productos">("buscar");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Selected>(null);
   const [mealSel, setMealSel] = useState<MealKey>(meal);
@@ -173,6 +174,14 @@ export function AddFoodDialog({
             </button>
             <button
               type="button"
+              onClick={() => setTab("productos")}
+              className={cn("rounded-md px-2.5 py-1 font-medium", tab === "productos" ? "bg-muted" : "text-muted-foreground")}
+            >
+              <Globe className="mr-1 inline size-3" />
+              Envasados
+            </button>
+            <button
+              type="button"
               onClick={() => setTab("rapido")}
               className={cn("rounded-md px-2.5 py-1 font-medium", tab === "rapido" ? "bg-muted" : "text-muted-foreground")}
             >
@@ -182,7 +191,15 @@ export function AddFoodDialog({
           </div>
         </div>
 
-        {tab === "rapido" ? (
+        {tab === "productos" && !selected ? (
+          <ProductSearch
+            autoFocus
+            onImported={(food) => {
+              setTab("buscar");
+              selectFood(food);
+            }}
+          />
+        ) : tab === "rapido" ? (
           <div className="grid grid-cols-2 gap-3">
             <Field label="¿Qué comiste?" className="col-span-2">
               <Input value={quick.name} onChange={(e) => setQuick({ ...quick, name: e.target.value })} placeholder="Ej: sándwich del bar" autoFocus />

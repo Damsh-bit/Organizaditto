@@ -15,6 +15,7 @@ import { ALLERGENS, FOOD_CATEGORIES, STORES } from "@/lib/constants";
 import { fmtARS, fmtDec, fmtInt } from "@/lib/format";
 import { matches } from "@/lib/search";
 import { cn } from "@/lib/utils";
+import { ProductSearchDialog } from "./product-search";
 
 export function FoodsTable({ foods }: { foods: Food[] }) {
   const [q, setQ] = useState("");
@@ -39,6 +40,7 @@ export function FoodsTable({ foods }: { foods: Food[] }) {
             </option>
           ))}
         </NativeSelect>
+        <ProductSearchDialog />
         <FoodDialog
           trigger={
             <Button>

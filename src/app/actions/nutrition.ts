@@ -27,6 +27,7 @@ import { buyQuantity } from "@/lib/shopping";
 import { getProfileContext } from "@/lib/data/settings";
 import { createBabyLog } from "@/lib/server/baby-log";
 import { STORES } from "@/lib/constants";
+import { offSearch, parseQuantityGrams, type OffProduct } from "@/lib/server/off";
 
 function refresh() {
   revalidatePath("/", "layout");
@@ -675,3 +676,79 @@ export async function deleteShoppingList(listId: number): Promise<ActionResult> 
   return ok("Lista eliminada");
 }
 
+
+/* ================================ Open Food Facts ================================ */
+
+export async function searchProducts(query: string): Promise<ActionResult<OffProduct[]>> {
+  if (query.trim().length < 2) return fail("Escribí al menos 2 letras o un código de barras");
+  const results = await offSearch(query);
+  if (!results.length) return fail("No encontré productos. Probá con otra búsqueda o cargalo a mano.");
+  return ok(undefined, results);
+}
+
+/** Agrega un producto de Open Food Facts a tus alimentos (o devuelve el existente). */
+export async function importProduct(p: OffProduct): Promise<ActionResult<FoodOptionLite>> {
+  const db = await getDb();
+  const slug = p.code ? `off-${p.code}` : null;
+  if (slug) {
+    const [existing] = await db.select().from(foods).where(eq(foods.slug, slug));
+    if (existing) return ok("Ya estaba en tus alimentos", toOption(existing));
+  }
+  const grams = parseQuantityGrams(p.quantity);
+  const name = p.brand && !p.name.toLowerCase().includes(p.brand.toLowerCase()) ? `${p.name} (${p.brand})` : p.name;
+  const [food] = await db
+    .insert(foods)
+    .values({
+      slug,
+      name: name.slice(0, 120),
+      category: "otros",
+      store: "supermercado",
+      kcal: p.kcal,
+      protein: p.protein,
+      carbs: p.carbs,
+      fat: p.fat,
+      fiber: p.fiber,
+      buyUnit: grams ? "paquete" : "unidad",
+      buyUnitGrams: grams ?? 100,
+      unitName: grams && grams <= 400 ? "unidad" : null,
+      unitGrams: grams && grams <= 400 ? grams : null,
+      isCustom: true,
+    })
+    .returning();
+  refresh();
+  return ok("Producto agregado a tus alimentos", toOption(food));
+}
+
+type FoodOptionLite = {
+  id: number;
+  name: string;
+  category: string;
+  store: string;
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber: number;
+  unitName: string | null;
+  unitGrams: number | null;
+  allergen: string | null;
+  babyFromMonths: number | null;
+};
+
+function toOption(f: Food): FoodOptionLite {
+  return {
+    id: f.id,
+    name: f.name,
+    category: f.category,
+    store: f.store,
+    kcal: f.kcal,
+    protein: f.protein,
+    carbs: f.carbs,
+    fat: f.fat,
+    fiber: f.fiber,
+    unitName: f.unitName,
+    unitGrams: f.unitGrams,
+    allergen: f.allergen,
+    babyFromMonths: f.babyFromMonths,
+  };
+}
