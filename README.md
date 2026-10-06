@@ -53,6 +53,9 @@ npm run dev
 
 Abrí <http://localhost:3000>. La primera vez te pide tus datos (peso, altura, etc.).
 
+En Windows también podés hacer **doble clic en `Iniciar Organizaditto.cmd`**: instala lo necesario la primera vez,
+compila y abre la app en el navegador.
+
 Los datos se guardan en una base Postgres **local** (PGlite) en `~/.organizaditto/pgdata` (fuera de OneDrive
 para evitar conflictos de sincronización). No hace falta instalar ninguna base de datos.
 
