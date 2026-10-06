@@ -46,9 +46,14 @@ export async function ensureSeed(db: DB) {
   const newRecipes = [...ADULT_RECIPES, ...EXTRA_RECIPES, ...BABY_RECIPES].filter((r) => !existingRecipes.has(r.slug));
   if (newRecipes.length) {
     const rows = newRecipes.map((r) => recipeRow(r, foodBySlug));
-    const inserted = await db.insert(recipes).values(rows).returning({ id: recipes.id, slug: recipes.slug });
+    // onConflictDoNothing + returning: si otra instancia sembró en paralelo, solo seguimos con lo que insertamos nosotros
+    const inserted = await db
+      .insert(recipes)
+      .values(rows)
+      .onConflictDoNothing({ target: recipes.slug })
+      .returning({ id: recipes.id, slug: recipes.slug });
     const idBySlug = new Map(inserted.map((r) => [r.slug!, r.id]));
-    const ingRows = newRecipes.flatMap((r) =>
+    const ingRows = newRecipes.filter((r) => idBySlug.has(r.slug)).flatMap((r) =>
       r.ingredients
         .filter(([slug]) => foodBySlug.has(slug))
         .map(([slug, grams, note], i) => ({
@@ -71,7 +76,9 @@ export async function ensureSeed(db: DB) {
     const [ins] = await db
       .insert(routines)
       .values({ slug: r.slug, name: r.name, description: r.description, workoutType: r.workoutType, estMinutes: r.estMinutes })
+      .onConflictDoNothing({ target: routines.slug })
       .returning({ id: routines.id });
+    if (!ins) continue;
     const exRows = r.exercises
       .filter(([slug]) => exBySlug.has(slug))
       .map(([slug, sets, reps, restSec], i) => ({
@@ -92,7 +99,8 @@ export async function ensureSeed(db: DB) {
     .onConflictDoNothing({ target: menuTemplates.slug });
 
   if (firstRun) {
-    await db.insert(habits).values(DEFAULT_HABITS.map((h, i) => ({ ...h, sort: i })));
+    const [anyHabit] = await db.select({ id: habits.id }).from(habits).limit(1);
+    if (!anyHabit) await db.insert(habits).values(DEFAULT_HABITS.map((h, i) => ({ ...h, sort: i })));
   }
 
   await db.update(settings).set({ seedVersion: SEED_VERSION }).where(eq(settings.id, 1));
