@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CalendarHeart, Sparkles, Trash2 } from "lucide-react";
+import { CalendarHeart, Ruler, Sparkles, Syringe, Trash2 } from "lucide-react";
 import { ActionButton } from "@/components/action-button";
 import { BabyLogDialog } from "@/components/baby/baby-log-dialog";
 import { PlanItemRow } from "@/components/nutrition/plan-client";
@@ -12,7 +12,19 @@ import { deleteBabyLog } from "@/app/actions/baby";
 import { ACCEPTANCE, ALLERGENS, MEAL_LABEL, REACTIONS } from "@/lib/constants";
 import { KEY_ALLERGENS, READINESS_SIGNS, stageFor } from "@/lib/baby-guide";
 import { addDaysISO, ageLabel, daysBetween, fmtDate, parseISO, startOfWeekISO, toISO } from "@/lib/dates";
-import { getBabyContext, getBabyFoodOptions, getBabyLogs, getExposureSummary, getFoodsToTry, worseReaction } from "@/lib/data/baby";
+import {
+  getBabyContext,
+  getBabyFoodOptions,
+  getBabyLogs,
+  getExposureSummary,
+  getFoodsToTry,
+  getMeasurements,
+  getVaccines,
+  worseReaction,
+} from "@/lib/data/baby";
+import { vaccineRows } from "@/lib/baby-vaccines";
+import { ageInMonths, assess, fmtPercentile } from "@/lib/growth";
+import { fmtDec } from "@/lib/format";
 import { getPlanItems, getRecipeOptions } from "@/lib/data/nutrition";
 import { cn } from "@/lib/utils";
 
@@ -37,15 +49,25 @@ export default async function BebePage() {
     );
   }
 
-  const [logs, exposures, toTry, recipes, foods, plan] = await Promise.all([
+  const [logs, exposures, toTry, recipes, foods, plan, measurements, vaccines] = await Promise.all([
     getBabyLogs(baby.id, addDaysISO(today, -6), today),
     getExposureSummary(baby.id),
     getFoodsToTry(baby.id, months ?? 6),
     getRecipeOptions("baby"),
     getBabyFoodOptions(),
     getPlanItems(today, today, "baby"),
+    getMeasurements(baby.id),
+    getVaccines(baby.id),
   ]);
   const stage = stageFor(months);
+  const lastWeight = [...measurements].reverse().find((m) => m.weightKg != null);
+  const weightPct =
+    lastWeight && baby.birthDate
+      ? assess("weight", baby.sex === "male" ? "male" : "female", ageInMonths(baby.birthDate, lastWeight.date), lastWeight.weightKg!)
+      : null;
+  const vRows = baby.birthDate ? vaccineRows(baby.birthDate, today, vaccines) : [];
+  const vLate = vRows.filter((v) => v.status === "atrasada");
+  const vNext = vRows.find((v) => !v.optional && v.status !== "aplicada" && v.status !== "atrasada");
   const todayLogs = logs.filter((l) => l.date === today);
   const weekStart = startOfWeekISO(today);
   const newThisWeek = exposures.filter((e) => e.firstDate >= weekStart).length;
@@ -151,6 +173,43 @@ export default async function BebePage() {
           valueClassName={exposures.some((e) => e.worstReaction !== "ninguna") ? "text-amber-600" : undefined}
         />
       </div>
+
+      {baby.birthDate && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Link href="/bebe/crecimiento" className="flex items-center gap-3 rounded-xl border bg-card p-3 transition-colors hover:bg-muted/50">
+            <Ruler className="size-5 shrink-0 text-baby" />
+            <div className="min-w-0 flex-1 text-sm">
+              <div className="font-medium">Crecimiento</div>
+              <div className="text-xs text-muted-foreground">
+                {lastWeight
+                  ? `${fmtDec(lastWeight.weightKg!, 2)} kg el ${fmtDate(lastWeight.date, "d/M")}${weightPct ? ` · percentil ${fmtPercentile(weightPct.percentile)}` : ""}`
+                  : "Cargá las medidas del último control"}
+              </div>
+            </div>
+          </Link>
+          <Link
+            href="/bebe/vacunas"
+            className={cn(
+              "flex items-center gap-3 rounded-xl border bg-card p-3 transition-colors hover:bg-muted/50",
+              vLate.length > 0 && vaccines.length > 0 && "border-warning/50",
+            )}
+          >
+            <Syringe className="size-5 shrink-0 text-baby" />
+            <div className="min-w-0 flex-1 text-sm">
+              <div className="font-medium">Vacunas</div>
+              <div className="text-xs text-muted-foreground">
+                {vaccines.length === 0
+                  ? "Cargá las de la libreta para que te avise las próximas"
+                  : vLate.length > 0
+                    ? `${vLate.length} atrasada${vLate.length === 1 ? "" : "s"} · revisá la libreta`
+                    : vNext
+                      ? `Próxima: ${vNext.name} (${vNext.ageLabel.toLowerCase()}, ${fmtDate(vNext.dueDate, "d/M")})`
+                      : "Calendario completo ✓"}
+              </div>
+            </div>
+          </Link>
+        </div>
+      )}
 
       <div className="grid gap-5 lg:grid-cols-2">
         <Card>

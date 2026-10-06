@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { getDb } from "@/db";
-import { babyFoodExposures, babyFoodLogs, foods } from "@/db/schema";
+import { babyFoodExposures, babyFoodLogs, babyMeasurements, babyQuestions, babyVaccines, foods } from "@/db/schema";
 import { monthsBetween, todayISO } from "@/lib/dates";
 import { getBaby } from "./settings";
 
@@ -96,4 +96,25 @@ export async function getBabyContext() {
   const today = todayISO();
   const months = baby?.birthDate ? monthsBetween(baby.birthDate, today) : null;
   return { baby, months, today };
+}
+
+/* ----------------------------- Salud: crecimiento, vacunas y control ----------------------------- */
+
+export async function getMeasurements(babyId: number) {
+  const db = await getDb();
+  return db.select().from(babyMeasurements).where(eq(babyMeasurements.babyId, babyId)).orderBy(asc(babyMeasurements.date));
+}
+
+export async function getVaccines(babyId: number) {
+  const db = await getDb();
+  return db.select().from(babyVaccines).where(eq(babyVaccines.babyId, babyId)).orderBy(asc(babyVaccines.date), asc(babyVaccines.id));
+}
+
+export async function getQuestions(babyId: number) {
+  const db = await getDb();
+  return db
+    .select()
+    .from(babyQuestions)
+    .where(eq(babyQuestions.babyId, babyId))
+    .orderBy(asc(babyQuestions.done), desc(babyQuestions.createdAt));
 }

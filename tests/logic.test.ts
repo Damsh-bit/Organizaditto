@@ -10,6 +10,8 @@ import { weeklyRate, weightInsights } from "../src/lib/weight";
 import { suggestRecipes } from "../src/lib/suggest";
 import { matches } from "../src/lib/search";
 import { computeAdaptive } from "../src/lib/adaptive";
+import { assess, lmsAt, normalCdf, valueAtZ, zScore } from "../src/lib/growth";
+import { vaccineRows } from "../src/lib/baby-vaccines";
 
 /** RNG determinista (mulberry32) para que los tests sean reproducibles. */
 function rng(seed: number) {
@@ -239,5 +241,44 @@ describe("gasto real (adaptativo)", () => {
     assert.equal(r.tdee, 1500);
     assert.equal(r.suggestedTarget, 1500);
     assert.ok(r.clampedToMin);
+  });
+});
+
+describe("bebé: crecimiento y vacunas", () => {
+  it("la mediana de la OMS da percentil 50 y el cálculo LMS es reversible", () => {
+    const lms = lmsAt("weight", "female", 6)!;
+    assert.equal(lms[1], 7.297);
+    assert.ok(Math.abs(assess("weight", "female", 6, 7.297)!.percentile - 50) < 0.01);
+    const x = valueAtZ(-1.88, lms);
+    assert.ok(Math.abs(zScore(x, lms) + 1.88) < 1e-9);
+    assert.ok(Math.abs(normalCdf(1.959964) - 0.975) < 1e-6);
+    // Interpola entre meses
+    const mid = lmsAt("length", "female", 6.5)!;
+    assert.ok(mid[1] > lmsAt("length", "female", 6)![1] && mid[1] < lmsAt("length", "female", 7)![1]);
+    assert.equal(lmsAt("weight", "female", 30), null);
+  });
+
+  it("clasifica valores extremos para consultar", () => {
+    assert.equal(assess("weight", "female", 6, 5.2)!.tone, "consult");
+    assert.equal(assess("weight", "female", 6, 7.3)!.tone, "ok");
+  });
+
+  it("calcula qué vacunas tocan según la edad y lo aplicado", () => {
+    const birth = "2026-05-01";
+    const rows = vaccineRows(birth, "2026-10-06", [
+      { id: 1, code: "bcg", date: "2026-05-01" },
+      { id: 2, code: "hepb-rn", date: "2026-05-01" },
+      { id: 3, code: "neumo-1", date: "2026-07-01" },
+    ]);
+    const by = (code: string) => rows.find((r) => r.code === code)!;
+    assert.equal(by("bcg").status, "aplicada");
+    assert.equal(by("neumo-1").status, "aplicada");
+    // 5 meses y 5 días: lo de los 2 y 3 meses ya está atrasado, lo de los 5 meses toca ahora
+    assert.equal(by("ipv-1").status, "atrasada");
+    assert.equal(by("mening-2").status, "toca");
+    assert.equal(by("ipv-3").status, "proxima");
+    assert.equal(by("triple-viral-1").status, "futura");
+    // La antigripal es opcional (de campaña): nunca figura como atrasada
+    assert.notEqual(by("gripe-1").status, "atrasada");
   });
 });

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, Baby, Briefcase, CalendarDays, Check, Dumbbell, Gauge, Lightbulb, Salad, Scale, ShoppingCart, Zap } from "lucide-react";
+import { ArrowRight, Baby, Briefcase, CalendarDays, Check, Dumbbell, Gauge, Lightbulb, Salad, Scale, ShoppingCart, Syringe, Zap } from "lucide-react";
 import { ActionButton } from "@/components/action-button";
 import { HabitsToday } from "@/components/habits-today";
 import { CalorieSummary } from "@/components/nutrition/calorie-summary";
@@ -14,7 +14,7 @@ import { quickWorkout } from "@/app/actions/training";
 import { togglePlanItemDone } from "@/app/actions/nutrition";
 import { ALLERGENS, MEAL_LABEL, WEEKDAYS_SHORT } from "@/lib/constants";
 import { KEY_ALLERGENS, stageFor } from "@/lib/baby-guide";
-import { addDaysISO, ageLabel, fmtDateLong, startOfWeekISO, todayISO, TZ, weekdayMon } from "@/lib/dates";
+import { addDaysISO, ageLabel, daysBetween, fmtDateLong, startOfWeekISO, todayISO, TZ, weekdayMon } from "@/lib/dates";
 import { fmtARS, fmtDec, fmtHours, fmtInt, fmtUSD } from "@/lib/format";
 import { weightInsights } from "@/lib/weight";
 import { baseTdee } from "@/lib/adaptive";
@@ -23,7 +23,8 @@ import { getAdaptive, getDaySummary, getIntakeByDay, getPlanItems, listShoppingL
 import { getTrainingSummary, getWeightLogs } from "@/lib/data/training";
 import { getEffectiveRate } from "@/lib/data/rates";
 import { getProjects, getRunningSession, getWorkDays, sumDays } from "@/lib/data/work";
-import { getBabyContext, getExposureSummary } from "@/lib/data/baby";
+import { getBabyContext, getExposureSummary, getVaccines } from "@/lib/data/baby";
+import { vaccineRows } from "@/lib/baby-vaccines";
 import { getHabitsWeek } from "@/lib/data/habits";
 import { cn } from "@/lib/utils";
 
@@ -59,7 +60,9 @@ export default async function HomePage() {
     getExerciseKcal(last7, addDaysISO(today, -1)),
     getAdaptive(ctx),
   ]);
-  const exposures = babyCtx.baby ? await getExposureSummary(babyCtx.baby.id) : [];
+  const [exposures, babyVaccines] = babyCtx.baby
+    ? await Promise.all([getExposureSummary(babyCtx.baby.id), getVaccines(babyCtx.baby.id)])
+    : [[], []];
   const rate = rateInfo.rate.value;
   const ins = weightInsights(weights, s.startWeightKg, s.goalWeightKg);
   const workToday = sumDays(workDays, today, today);
@@ -123,6 +126,27 @@ export default async function HomePage() {
       text: `Lista de compras pendiente: ${openList.total - openList.checked} ítems por comprar.`,
       href: `/nutricion/compras/${openList.id}`,
     });
+  }
+  // Vacunas: solo si ya cargó alguna (si no, la app no sabe qué tiene aplicado)
+  if (babyCtx.baby?.birthDate && babyVaccines.length > 0) {
+    const rows = vaccineRows(babyCtx.baby.birthDate, today, babyVaccines).filter((v) => !v.optional);
+    const due = rows.filter((v) => v.status === "toca" || v.status === "atrasada");
+    const soon = rows.filter((v) => v.status === "proxima" && daysBetween(today, v.dueDate) <= 7);
+    const names = (list: typeof rows) => [...new Set(list.map((v) => v.name))].join(", ");
+    if (due.length) {
+      insights.push({
+        icon: <Syringe className="size-4 text-baby" />,
+        text: `A ${babyCtx.baby.name} le toca vacunarse: ${names(due)}.`,
+        href: "/bebe/vacunas",
+      });
+    } else if (soon.length) {
+      const d = daysBetween(today, soon[0].dueDate);
+      insights.push({
+        icon: <Syringe className="size-4 text-baby" />,
+        text: `${d === 1 ? "Mañana" : `En ${d} días`} le tocan vacunas a ${babyCtx.baby.name}: ${names(soon)}.`,
+        href: "/bebe/vacunas",
+      });
+    }
   }
   if (nextAllergen && babyCtx.baby) {
     insights.push({

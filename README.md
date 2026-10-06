@@ -40,6 +40,10 @@ semanal recalcula tus objetivos y tus horas de trabajo se convierten a pesos con
 - 29 recetas para bebé (purés, papillas y BLW) sin sal ni azúcar, filtradas por edad.
 - Registro de comidas con aceptación y reacciones; seguimiento de **alimentos probados y alérgenos**.
 - Plan semanal y menús para bebé (sus ingredientes entran en tu lista de compras) y **guía** completa.
+- **Crecimiento**: peso, talla y perímetro cefálico con percentiles y curvas de la OMS (0 a 2 años), aumento
+  por semana, historial de controles y lista de **preguntas para el próximo control** con el pediatra.
+- **Vacunas**: Calendario Nacional de Vacunación 2026 con lo aplicado, lo que toca, lo próximo y lo atrasado
+  (con aviso en el Inicio), más vacunas fuera de calendario.
 
 ### 🏠 Inicio
 Resumen del día que cruza todos los módulos + hábitos diarios configurables.

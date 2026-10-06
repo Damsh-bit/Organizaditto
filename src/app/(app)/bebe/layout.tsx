@@ -3,6 +3,8 @@ import { SubNav } from "@/components/sub-nav";
 const ITEMS = [
   { href: "/bebe", label: "Resumen", exact: true },
   { href: "/bebe/registro", label: "Registro" },
+  { href: "/bebe/crecimiento", label: "Crecimiento" },
+  { href: "/bebe/vacunas", label: "Vacunas" },
   { href: "/bebe/alimentos", label: "Alimentos y alérgenos" },
   { href: "/bebe/recetas", label: "Recetas" },
   { href: "/bebe/plan", label: "Plan" },

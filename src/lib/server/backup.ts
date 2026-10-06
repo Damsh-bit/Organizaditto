@@ -30,6 +30,9 @@ export const BACKUP_TABLES: [string, PgTable][] = [
   ["babies", s.babies],
   ["baby_food_logs", s.babyFoodLogs],
   ["baby_food_exposures", s.babyFoodExposures],
+  ["baby_measurements", s.babyMeasurements],
+  ["baby_vaccines", s.babyVaccines],
+  ["baby_questions", s.babyQuestions],
 ];
 
 const SERIAL_TABLES = BACKUP_TABLES.map(([n]) => n).filter((n) => !["settings", "daily_metrics", "habit_checks"].includes(n));

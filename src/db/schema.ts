@@ -475,6 +475,54 @@ export const babyFoodExposures = pgTable(
   (t) => [index("baby_food_exposures_idx").on(t.babyId, t.foodId)],
 );
 
+/** Mediciones (controles pediátricos o en casa) para las curvas de crecimiento. */
+export const babyMeasurements = pgTable(
+  "baby_measurements",
+  {
+    id: serial("id").primaryKey(),
+    babyId: integer("baby_id")
+      .notNull()
+      .references(() => babies.id, { onDelete: "cascade" }),
+    date: date("date").notNull(),
+    weightKg: doublePrecision("weight_kg"),
+    lengthCm: doublePrecision("length_cm"),
+    headCm: doublePrecision("head_cm"),
+    isCheckup: boolean("is_checkup").notNull().default(true),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => [uniqueIndex("baby_measurements_date_idx").on(t.babyId, t.date)],
+);
+
+/** Vacunas aplicadas (code = dosis del calendario; null = vacuna extra). */
+export const babyVaccines = pgTable(
+  "baby_vaccines",
+  {
+    id: serial("id").primaryKey(),
+    babyId: integer("baby_id")
+      .notNull()
+      .references(() => babies.id, { onDelete: "cascade" }),
+    code: text("code"),
+    name: text("name").notNull(),
+    date: date("date").notNull(),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => [index("baby_vaccines_baby_idx").on(t.babyId)],
+);
+
+/** Dudas para el próximo control con el pediatra. */
+export const babyQuestions = pgTable("baby_questions", {
+  id: serial("id").primaryKey(),
+  babyId: integer("baby_id")
+    .notNull()
+    .references(() => babies.id, { onDelete: "cascade" }),
+  text: text("text").notNull(),
+  answer: text("answer"),
+  done: boolean("done").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
 /* ------------------------------------------------------------------ */
 /* Relaciones                                                          */
 /* ------------------------------------------------------------------ */
@@ -560,3 +608,6 @@ export type Payout = typeof payouts.$inferSelect;
 export type ExchangeRate = typeof exchangeRates.$inferSelect;
 export type Baby = typeof babies.$inferSelect;
 export type BabyFoodLog = typeof babyFoodLogs.$inferSelect;
+export type BabyMeasurement = typeof babyMeasurements.$inferSelect;
+export type BabyVaccine = typeof babyVaccines.$inferSelect;
+export type BabyQuestion = typeof babyQuestions.$inferSelect;
