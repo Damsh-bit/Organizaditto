@@ -12,7 +12,8 @@
     "db:check": "tsx scripts/check-db.ts",
     "seed:check": "tsx scripts/check-slugs.ts",
     "dev:test": "node scripts/dev-test.mjs",
-    "test:backup": "node --conditions=react-server --import tsx scripts/backup-roundtrip.ts"
+    "test:backup": "node --conditions=react-server --import tsx scripts/backup-roundtrip.ts",
+    "test": "node --import tsx --test tests/*.test.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8",

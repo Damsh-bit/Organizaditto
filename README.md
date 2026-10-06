@@ -92,6 +92,7 @@ Ver [`.env.example`](.env.example). Todas son opcionales:
 | `npm run build` / `npm start` | Build y servidor de producción |
 | `npm run typecheck` | Chequeo de tipos |
 | `npm run lint` | ESLint |
+| `npm test` | Tests de la lógica (calorías, plan semanal, compras, peso, fechas) |
 | `npm run db:generate` | Genera una migración SQL después de cambiar `src/db/schema.ts` |
 | `npm run seed:check` | Valida que las recetas/menús del seed referencien alimentos existentes |
 | `npm run dev:test` | Dev en el puerto 3100 con una base de pruebas separada |
