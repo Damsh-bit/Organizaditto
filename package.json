@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node scripts/serve.mjs dev",
-    "build": "next build",
+    "build": "node --import tsx scripts/db-setup.ts && next build",
     "start": "node scripts/serve.mjs start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",

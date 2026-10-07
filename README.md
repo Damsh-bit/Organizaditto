@@ -91,9 +91,8 @@ La app está en **<https://organizaditto.vercel.app>**, conectada a este repo: c
 
 - **Acceso:** el proyecto tiene *Vercel Authentication* en todas las URLs, así que solo entra quien esté logueado
   con tu cuenta de Vercel (en el celular, iniciás sesión una vez). No hace falta `APP_PASSWORD`.
-- **Base de datos:** hasta conectar Neon usa una base temporal (se borra sola; la app lo avisa con un cartel).
-  Para que los datos queden guardados: en el proyecto de Vercel, **Storage → Create Database → Neon**, conectala
-  al proyecto (crea `DATABASE_URL`) y volvé a desplegar. La app crea las tablas y carga recetas/alimentos sola.
+- **Base de datos:** Neon (Postgres), conectada desde Vercel → Storage (crea `DATABASE_URL`). En cada deploy,
+  `scripts/db-setup.ts` aplica las migraciones y el seed antes del build, así la app arranca lista.
 - **Llevar tus datos de la PC:** en tu compu **Ajustes → Descargar backup**, y en la app publicada
   **Ajustes → Restaurar backup**.
 
