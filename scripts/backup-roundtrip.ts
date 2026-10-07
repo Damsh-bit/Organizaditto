@@ -8,6 +8,7 @@ import { BACKUP_TABLES, exportAll, importAll } from "../src/lib/server/backup";
 
 // Nunca tocar la base real: siempre una base PGlite temporal.
 delete process.env.DATABASE_URL;
+delete process.env.POSTGRES_URL;
 process.env.PGLITE_DIR = path.join(os.tmpdir(), "organizaditto-backup-test");
 
 async function main() {

@@ -18,9 +18,14 @@ function pgliteDir() {
   return path.join(os.homedir(), ".organizaditto", "pgdata");
 }
 
+/** Conexión a Neon. La integración de Vercel crea DATABASE_URL (y POSTGRES_URL como alias). */
+export function databaseUrl(): string | undefined {
+  return process.env.DATABASE_URL || process.env.POSTGRES_URL || undefined;
+}
+
 async function create(): Promise<DB> {
   const migrationsFolder = path.join(process.cwd(), "drizzle");
-  const url = process.env.DATABASE_URL;
+  const url = databaseUrl();
   let db: DB;
 
   if (url) {
@@ -61,9 +66,9 @@ export function getDb(): Promise<DB> {
 
 export function dbInfo() {
   return {
-    driver: state.driver ?? (process.env.DATABASE_URL ? "neon" : "pglite"),
+    driver: state.driver ?? (databaseUrl() ? "neon" : "pglite"),
     dataDir: state.dataDir ?? null,
-    ephemeral: !process.env.DATABASE_URL && Boolean(process.env.VERCEL),
+    ephemeral: !databaseUrl() && Boolean(process.env.VERCEL),
   };
 }
 
